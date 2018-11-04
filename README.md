@@ -1,4 +1,4 @@
-# CM30225 Parallel Computing * Assessed Coursework Assignment 1
+# CM30225 Parallel Computing - Assessed Coursework Assignment 1
 
 * Set: Mon 22 Oct 2018
 * Due: 5pm., Monday 19 Nov 2018, via Moodle
@@ -27,7 +27,7 @@ elements differ from the previous ones by less than the precision.
 
 Run your code on varying sizes of arrays and varying numbers of cores in a shared memory configuration.
 
-A complete solution consists of
+A complete solution consists of:
 
 * properly commented source code, together with any extra information you feel will help, such as describing
     your approach to the parallelisation of your solution, how you avoided race conditions, and so on
@@ -35,7 +35,7 @@ A complete solution consists of
 * comments, graphs or any other relevant details of yourscalability investigation, with particular reference to
     speedup and efficiency
 
-Hand in your writeup as plain text or a PDF,notas DOC, DOCX or DOC variant (or MS spreadsheets)
+Hand in your writeup as plain text or a PDF,not  as DOC, DOCX or DOC variant (or MS spreadsheets)
 
 Hand in the code in a text (C) file that can be compiled, separate from your writeup,notas a listing in the PDF (check
 the upload to Moodle did not convert your program file to HTML)
@@ -67,5 +67,3 @@ been known to lose coursework.
 * Don’t use screenshots, they are always difficult to read. If you need to include relevant data, cut and paste it into
     your document
 * Don’t include hundreds of data files and log files: use your judgement as to what is the right level of information
-* Don’t leave this assignment to the last minute: parallel programming is more subtle than you think
-* The mark that appears on Moodle is provisional, and subject to revision. The SAMIS mark is definitive
