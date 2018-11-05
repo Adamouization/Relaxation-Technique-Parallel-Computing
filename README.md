@@ -11,7 +11,7 @@
 The objective of this assignment is to give you experience of using low-level primitive parallelism constructs on a
 shared memory architecture; plus a feel for how parallel problems scale on such architectures.
 
-The background is the solution of differential equations using a method called therelaxation technique. This is done by
+The background is the solution of differential equations using a method called the relaxation technique. This is done by
 having an array of values and repeatedly replacing a value with the average of its four neighbours; excepting boundary
 values, which remain at fixed values. This is repeated until all values settle down to within a given precision.
 
