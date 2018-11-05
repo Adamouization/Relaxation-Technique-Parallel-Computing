@@ -8,4 +8,5 @@
 
 ## Code design
 
-* [ ] 
+* [X] Move all code from the main() to individual functions.
+* [ ] Create a makefile for compiling the code with GCC then running it.
