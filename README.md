@@ -6,6 +6,19 @@
 * Set by: Russell Bradford
 * Environment: Balena, pthreads and C
 
+## Usage
+
+### On local machine using GCC
+
+```
+gcc main.c -o main.exe -Wall -Wextra -Wconversion
+./main.exe
+```
+
+### On Balena (University of Bath's medium-sized cluster) using SLURM
+
+TODO
+
 ## Description
 
 The objective of this assignment is to give you experience of using low-level primitive parallelism constructs on a
