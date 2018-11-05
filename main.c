@@ -13,6 +13,7 @@
 
 // Function definitions
 double double_random(double low, double high);
+void print_array(double **array);
 
 
 /*
@@ -41,12 +42,7 @@ int main() {
 	}
 
 	// print array the array
-	for (int i = 0; i < dim; i++) {
- 		for (int j = 0; j < dim; j++) {
- 			printf("%f ", square_array[i][j]);
- 		}
- 		printf("\n");
- 	}
+	print_array(square_array);
 
  	free(square_array);
    	return 0;
@@ -57,5 +53,18 @@ int main() {
  * Returns a random double ranging from 'low' to 'high'.
  */
 double double_random (double low, double high) {
-    return ((double)rand() * ( high - low )) / (double)RAND_MAX + low;
+    return ((double)rand() * (high-low)) / (double)RAND_MAX + low;
+}
+
+
+/*
+ * Prints a square array to the command line.
+ */
+void print_array(double **array) {
+	for (int i = 0; i < dim; i++) {
+ 		for (int j = 0; j < dim; j++) {
+ 			printf("%f ", array[i][j]);
+ 		}
+ 		printf("\n");
+ 	}
 }
