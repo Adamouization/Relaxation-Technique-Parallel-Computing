@@ -16,6 +16,7 @@
 
 // Function definitions
 double ** create_square_array(void);
+double ** average_array(double **square_array);
 void check_malloc(double **);
 double double_random(double low, double high);
 void print_array(double **array);
@@ -26,37 +27,11 @@ void print_array(double **array);
  */
 int main() {
 	double **square_array = create_square_array();
+	printf("initial array:\n");
 	print_array(square_array);
 
-	for (int i = 0; i < dim; i++) {
-		for (int j = 0; j < dim; j++) {
-			if ( (!((i==0) || (i==dim-1))) && (!((j==0) || (j==dim-1))) ){
-				// element to average
-				double element = square_array[i][j]; 
-
-				// get 4 surrounding elements needed to average
-				double ele_left = square_array[i][j-1];
-				double ele_right = square_array[i][j+1];
-				double ele_up = square_array[i-1][j];
-				double ele_down = square_array[i+1][j];
-
-				// print data
-				printf("element of interest: %f\n", element);
-				printf("ele_left: %f\n", ele_left);
-				printf("ele_right: %f\n", ele_right);
-				printf("ele_up: %f\n", ele_up);
-				printf("ele_down: %f\n", ele_down);
-
-				// perform the calculation
-				double new_value = (ele_left + ele_right + ele_up + ele_down) / 4;
-				printf("New value = %f\n", new_value);
-				printf("\n");
-
-				// replace the old value with the new one
-				square_array[i][j] = new_value;
-			}
-		}
-	}
+	square_array = average_array(square_array);
+	printf("updated array:\n");
 	print_array(square_array);
 
  	free(square_array);
@@ -87,6 +62,46 @@ double ** create_square_array(void) {
 	}
 
 	return sq_array;
+}
+
+
+/**
+ * Loops through the square array to replace a value with an average of its 4
+ * neighbouring values (left, right, up and down). Does not update boundary
+ * values.
+ * Returns a new square array with the updated values.
+ */
+double ** average_array(double **temp_array) {
+	for (int i = 0; i < dim; i++) {
+		for (int j = 0; j < dim; j++) {
+			if ( (!((i==0) || (i==dim-1))) && (!((j==0) || (j==dim-1))) ){
+				// element to average
+				double element = temp_array[i][j]; 
+
+				// get 4 surrounding elements needed to average
+				double ele_left = temp_array[i][j-1];
+				double ele_right = temp_array[i][j+1];
+				double ele_up = temp_array[i-1][j];
+				double ele_down = temp_array[i+1][j];
+
+				// print data
+				printf("element of interest: %f\n", element);
+				printf("ele_left: %f\n", ele_left);
+				printf("ele_right: %f\n", ele_right);
+				printf("ele_up: %f\n", ele_up);
+				printf("ele_down: %f\n", ele_down);
+
+				// perform the calculation
+				double new_value = (ele_left + ele_right + ele_up + ele_down) / 4;
+				printf("New value = %f\n", new_value);
+				printf("\n");
+
+				// replace the old value with the new one
+				temp_array[i][j] = new_value;
+			}
+		}
+	}
+	return temp_array;
 }
 
 
