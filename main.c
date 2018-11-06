@@ -21,7 +21,7 @@
 // Function definitions
 double ** create_square_array(void);
 double ** average_array(double **square_array);
-void check_malloc(double **);
+void check_malloc(double **sq_array);
 double double_random(double low, double high);
 void print_array(double **array);
 
@@ -114,7 +114,7 @@ double ** average_array(double **temp_array) {
  * square array of doubles.
  * If not, exit the program with a failure.
  */
-void check_malloc(double ** sq_array) {
+void check_malloc(double **sq_array) {
 	if (sq_array == NULL) {
 		fprintf(stderr, "Failed to allocate space for the array.\n");
 		exit(EXIT_FAILURE);
