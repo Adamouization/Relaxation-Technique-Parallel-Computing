@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#define dim 5
+#define dim 4
 
 
 // Function definitions
@@ -32,8 +32,22 @@ int main() {
 	for (int i = 0; i < dim; i++) {
 		for (int j = 0; j < dim; j++) {
 			if ( (!((i==0) || (i==dim-1))) && (!((j==0) || (j==dim-1))) ){
-				printf("%f ", square_array[i][j]); // element to average
+				// element to average
+				double element = square_array[i][j]; 
 				// get 4 surrounding elements needed to average
+				double ele_left = square_array[i][j-1];
+				double ele_right = square_array[i][j+1];
+				double ele_up = square_array[i-1][j];
+				double ele_down = square_array[i+1][j];
+
+				// print data
+				printf("element of interest: %f\n", element);
+				printf("ele_left: %f\n", ele_left);
+				printf("ele_right: %f\n", ele_right);
+				printf("ele_up: %f\n", ele_up);
+				printf("ele_down: %f\n", ele_down);
+				printf("\n");
+
 				// perform the calculation
 				// replace the old value with the new one
 			}
