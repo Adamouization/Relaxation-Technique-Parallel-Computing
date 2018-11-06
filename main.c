@@ -4,6 +4,10 @@
  * 
  * Relaxation technique for solving differential equations in a shared memory 
  * architecture using pthreads
+ *
+ * Local usage: 
+ * 1) "gcc main.c -o main.exe -Wall -Wextra -Wconversion"
+ * 2) "main.exe"
  * 
  * Author: aj645
  * Date: 19-Nov-2018
