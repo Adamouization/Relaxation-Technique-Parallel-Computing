@@ -33,6 +33,7 @@ int main() {
 			if ( (!((i==0) || (i==dim-1))) && (!((j==0) || (j==dim-1))) ){
 				// element to average
 				double element = square_array[i][j]; 
+
 				// get 4 surrounding elements needed to average
 				double ele_left = square_array[i][j-1];
 				double ele_right = square_array[i][j+1];
@@ -52,9 +53,11 @@ int main() {
 				printf("\n");
 
 				// replace the old value with the new one
+				square_array[i][j] = new_value;
 			}
 		}
 	}
+	print_array(square_array);
 
  	free(square_array);
    	return 0;
