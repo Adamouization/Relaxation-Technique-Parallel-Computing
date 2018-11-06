@@ -28,7 +28,6 @@ int main() {
 	double **square_array = create_square_array();
 	print_array(square_array);
 
-	printf("\n");
 	for (int i = 0; i < dim; i++) {
 		for (int j = 0; j < dim; j++) {
 			if ( (!((i==0) || (i==dim-1))) && (!((j==0) || (j==dim-1))) ){
@@ -46,15 +45,16 @@ int main() {
 				printf("ele_right: %f\n", ele_right);
 				printf("ele_up: %f\n", ele_up);
 				printf("ele_down: %f\n", ele_down);
-				printf("\n");
 
 				// perform the calculation
+				double new_value = (ele_left + ele_right + ele_up + ele_down) / 4;
+				printf("New value = %f\n", new_value);
+				printf("\n");
+
 				// replace the old value with the new one
 			}
 		}
-		printf("\n");
 	}
-	printf("\n");
 
  	free(square_array);
    	return 0;
@@ -118,4 +118,5 @@ void print_array(double **array) {
  		}
  		printf("\n");
  	}
+ 	printf("\n");
 }
