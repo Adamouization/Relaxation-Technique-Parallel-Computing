@@ -53,13 +53,13 @@ double ** create_square_array(void) {
 	check_malloc(sq_array);
 
 	// allocate space for multiple 1D arrays of doubles
-	for (int i = 0; i < dim; i++){
+	for (int i = 0; i < dim; i++) {
 		sq_array[i] = malloc(dim * sizeof(double));
 		check_malloc(sq_array);
 	}
 
 	// populate the array with random doubles
-	for (int i = 0; i < dim; i++){
+	for (int i = 0; i < dim; i++) {
 		for (int j = 0; j < dim; j++) {
 			sq_array[i][j] = double_random(1.0, 10.0);
 		}
@@ -78,7 +78,7 @@ double ** create_square_array(void) {
 double ** average_array(double **temp_array) {
 	for (int i = 0; i < dim; i++) {
 		for (int j = 0; j < dim; j++) {
-			if ( (!((i==0) || (i==dim-1))) && (!((j==0) || (j==dim-1))) ){
+			if ( (!((i==0) || (i==dim-1))) && (!((j==0) || (j==dim-1))) ) {
 				// element to average
 				double element = temp_array[i][j]; 
 
