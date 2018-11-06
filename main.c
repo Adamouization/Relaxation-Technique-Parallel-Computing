@@ -1,7 +1,10 @@
 /*
  * CM30225 Parallel Computing
  * Assessment Coursework 1
- * Relaxation technique for solving differential equations in a shared memory architecture using pthreads
+ * 
+ * Relaxation technique for solving differential equations in a shared memory 
+ * architecture using pthreads
+ * 
  * Author: aj645
  * Date: 19-Nov-2018
  */
@@ -31,7 +34,8 @@ int main() {
 
 
 /*
- * Creates an square array by creating an initial array of pointers, each looking at 1D arrays of doubles.
+ * Creates an square array by creating an initial array of pointers, each 
+ * looking at 1D arrays of doubles.
  */
 double ** create_square_array(void) {
 	// allocate space for a 1D array of double pointers.
@@ -56,7 +60,8 @@ double ** create_square_array(void) {
 
 
 /*
- * Check that malloc correctly allocated the amount of space required for the square array of doubles.
+ * Check that malloc correctly allocated the amount of space required for the 
+ * square array of doubles.
  * If not, exit the program with a failure.
  */
 void check_malloc(double ** sq_array) {
