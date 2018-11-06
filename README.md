@@ -6,20 +6,7 @@
 * Set by: Russell Bradford
 * Environment: Balena, pthreads and C
 
-## Usage
-
-### On local machine using GCC
-
-```
-gcc main.c -o main.exe -Wall -Wextra -Wconversion
-./main.exe
-```
-
-### On Balena (University of Bath's medium-sized cluster) using SLURM
-
-TODO
-
-## Description
+## Problem Description
 
 The objective of this assignment is to give you experience of using low-level primitive parallelism constructs on a
 shared memory architecture; plus a feel for how parallel problems scale on such architectures.
@@ -28,50 +15,31 @@ The background is the solution of differential equations using a method called t
 having an array of values and repeatedly replacing a value with the average of its four neighbours; excepting boundary
 values, which remain at fixed values. This is repeated until all values settle down to within a given precision.
 
-This assignment is to implement relaxation, using C and pthreads on Balena.
+The goal is to implement relaxation, using C and pthreads on Balena by repeatedly averaging sets of four numbers.
 
-For this assignment you will be simply repeatedly averaging sets of four numbers.
+The solver expects:
+* an initial square array of double values,
+* an integer dimension (the dimension of the array),
+* the number of threads to use,
+* and a precision to work to.
 
-Your solver will expect an initial square array ofdoublevalues, an integer dimension (the dimension of the array),
-the number of threads to use, and a precision to work to.
-
-The edges of the array form the boundary, values there are fixed; iterate the averaging until the new values of all
+The edges of the array form the boundary, values there are fixed, so the averaging will continue to iterate until the new values of all
 elements differ from the previous ones by less than the precision.
 
-Run your code on varying sizes of arrays and varying numbers of cores in a shared memory configuration.
+The code should run on varying sizes of arrays and varying numbers of cores in a shared memory configuration.
 
-A complete solution consists of:
+## Usage
 
-* properly commented source code, together with any extra information you feel will help, such as describing
-    your approach to the parallelisation of your solution, how you avoided race conditions, and so on
-* (excerpts from) the results of yourcorrectness testingof your code
-* comments, graphs or any other relevant details of yourscalability investigation, with particular reference to
-    speedup and efficiency
+### On a local machine using GCC
 
-Hand in your writeup as plain text or a PDF,not  as DOC, DOCX or DOC variant (or MS spreadsheets)
+```
+gcc main.c -o main.exe -Wall -Wextra -Wconversion
+./main.exe
+```
 
-Hand in the code in a text (C) file that can be compiled, separate from your writeup,notas a listing in the PDF (check
-the upload to Moodle did not convert your program file to HTML)
+### On Balena (University of Bath's medium-sized cluster) using SLURM
 
-All answers must be placed by 5 p.m. on Monday 19 Nov 2018. CHECK YOUR HANDIN. Moodle has
-been known to lose coursework.
-
-
-## Notes
-
-* This assignment is testing you on the use of low-level primitives in C, so any use of higher level constructs
-    (OpenMP, monitors, etc.) will be marked down
-* It is your choice on what low-level primitives to use: if you are unsure what is classed as low-level, ask. “Low-
-    level” certainly includes mutexes, barriers, semaphores, condition variables and pthreadcreate and join. For
-    the purposes of this assignment, atomics are not primitives
-* It is your choice on how to parallelise the solution, e.g., how to partition the workload
-* Balena can provide up to 16 cores in a shared memory configuration
-* Note that the queue will get long as the hand-in date approaches
-* This coursework is not a complex software engineering exercise: keep it clean and simple (a single.c/.h plus
-    a single PDF is enough)
-* This coursework is not intended to assess your ability to write C, but excessively poor code will hamper your
-    ability to get high marks (always compile with maximum warnings set, e.g.,-Wall -Wextra -Wconversion
-    for gcc)
-* Keep the code listing to a maximum of 80 columns width: super-wide lines are harder to read and tries to put
-    too much into a single line
-* Don’t include hundreds of data files and log files: use your judgement as to what is the right level of information
+* SSH into Balena: `ssh [user_name]@balena.bath.ac.uk`
+* `cd` into the project directory and create a `sbatch` job submission script.
+* Submit the job to the queue: `sbatch jobscript.slurm`
+* Monitor the job in the queue: `squeue -u [user_name]`
