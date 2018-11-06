@@ -20,9 +20,11 @@
 
 // Function definitions
 double ** create_square_array(void);
+double ** relaxation(double **square_array, double precision);
 double ** average_array(double **square_array);
 void check_malloc(double **sq_array);
 double double_random(double low, double high);
+void print_initial_data(double **array, int dimension, int threads, double precision);
 void print_array(double **array);
 
 
@@ -30,10 +32,15 @@ void print_array(double **array);
  * Program entry.
  */
 int main() {
+	// initial values
 	double **square_array = create_square_array();
-	printf("initial array:\n");
-	print_array(square_array);
+	int array_dimension = dim;
+	int number_of_threads = 2;
+	double precision = 0.1;
+	print_initial_data(square_array, array_dimension, number_of_threads, precision);
+	
 
+	// iterate averaging until precision reached
 	square_array = average_array(square_array);
 	printf("updated array:\n");
 	print_array(square_array);
@@ -71,7 +78,7 @@ double ** create_square_array(void) {
 
 /**
  * Loops through the square array to replace a value with an average of its 4
- * neighbouring values (left, right, up and down). Does not update boundary
+ * neighbouring values (left, right, up and down). Does not ((update boundary
  * values.
  * Returns a new square array with the updated values.
  */
@@ -130,6 +137,19 @@ double double_random (double low, double high) {
 }
 
 
+/**
+ * Prints the initial data values used to initiate the program.
+ */
+void print_initial_data(double **array, int dimension, int threads, double precision) {
+	printf("Initial data:\n");
+	printf("Square array:\n");
+	print_array(array);
+	printf("Array dimension: %d\n", dimension);
+	printf("Number of threads: %d\n", threads);
+	printf("Precision: %f\n\n", precision);
+}
+
+
 /*
  * Prints a square array to the command line.
  */
@@ -140,5 +160,4 @@ void print_array(double **array) {
  		}
  		printf("\n");
  	}
- 	printf("\n");
 }
