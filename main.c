@@ -1,4 +1,4 @@
-/*
+/**
  * CM30225 Parallel Computing
  * Assessment Coursework 1
  * 
@@ -27,6 +27,7 @@ void check_malloc(double **sq_array);
 double double_random(double low, double high);
 void print_initial_data(int threads, double precision, double **array);
 void print_array(double **array);
+void print_relaxation_data(double old, double l, double r, double u, double d, double new, int precision);
 
 
 /*
@@ -77,13 +78,13 @@ double ** create_square_array(void) {
 }
 
 
-/**
+/*
  * Loops through the square array to replace a value with an average of its 4
  * neighbouring values (left, right, up and down). Does not ((update boundary
  * values.
  * Returns a new square array with the updated values.
  */
-double ** relaxation(double **temp_array, double precision) {
+double ** relaxation(double **square_array, double precision) {
 	bool is_above_precision = true;
 	int precision_counter = 0;
 	int iteration_counter = 0;
@@ -98,13 +99,13 @@ double ** relaxation(double **temp_array, double precision) {
 				// filter out border values
 				if ( (!((i==0) || (i==dim-1))) && (!((j==0) || (j==dim-1))) ) {
 					// value to replace
-					double old_value = temp_array[i][j]; 
+					double old_value = square_array[i][j]; 
 
 					// get 4 surrounding values needed to average
-					double v_left = temp_array[i][j-1];
-					double v_right = temp_array[i][j+1];
-					double v_up = temp_array[i-1][j];
-					double v_down = temp_array[i+1][j];
+					double v_left = square_array[i][j-1];
+					double v_right = square_array[i][j+1];
+					double v_up = square_array[i-1][j];
+					double v_down = square_array[i+1][j];
 
 					// perform the calculation
 					double new_value = (v_left + v_right + v_up + v_down) / 4;
@@ -121,22 +122,17 @@ double ** relaxation(double **temp_array, double precision) {
 					}
 
 					// replace the old value with the new one
-					temp_array[i][j] = new_value;
+					square_array[i][j] = new_value;
 
 					// print data
-					printf("Value to replace: %f\n", old_value);
-					/*printf("v_left: %f\n", v_left);
-					printf("v_right: %f\n", v_right);
-					printf("v_up: %f\n", v_up);
-					printf("v_down: %f\n", v_down);*/
-					printf("New value = %f\n", new_value);
-					printf("precision_counter: %d\n", precision_counter);
+					print_relaxation_data(old_value, v_left, v_right, v_up, 
+						v_down, new_value, precision_counter);
 				}
 			}
 		}
 		iteration_counter++;
 	}
-	return temp_array;
+	return square_array;
 }
 
 
@@ -161,7 +157,7 @@ double double_random (double low, double high) {
 }
 
 
-/**
+/*
  * Prints the initial data values used to initiate the program.
  */
 void print_initial_data(int threads, double precision, double **arr) {
@@ -184,4 +180,17 @@ void print_array(double **array) {
  		}
  		printf("\n");
  	}
+}
+
+
+/*
+ * Prints the values used for each iteration of the relaxation technique.
+ */
+void print_relaxation_data(double old, double l, double r, double u, double d, 
+	double new, int precision) {
+	printf("Value to replace: %f\n", old);
+	printf("l: %f, r: %f, u: %f, d: %f\n", l, r, u, d);
+	printf("New value = %f\n", new);
+	printf("precision_counter: %d\n", precision);
+	printf("------\n");
 }
