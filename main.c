@@ -22,11 +22,10 @@
 
 // Function definitions
 double ** create_square_array(void);
-// double ** relaxation(double **square_array, double precision);
 double ** relaxation(double **square_array, double precision);
 void check_malloc(double **sq_array);
 double double_random(double low, double high);
-void print_initial_data(double **array, int dimension, int threads, double precision);
+void print_initial_data(int threads, double precision, double **array);
 void print_array(double **array);
 
 
@@ -36,16 +35,16 @@ void print_array(double **array);
 int main() {
 	// initial values
 	double **square_array = create_square_array();
-	int array_dimension = dim;
 	int number_of_threads = 2;
 	double precision = 0.1;
-	print_initial_data(square_array, array_dimension, number_of_threads, precision);
+	print_initial_data(number_of_threads, precision, square_array);
 
 	// iterate averaging until precision reached
 	square_array = relaxation(square_array, precision);
 	printf("\n------------------------ Final square array\n");
 	print_array(square_array);
 
+	// free allocated array space and successfully exit program
  	free(square_array);
    	return 0;
 }
@@ -102,13 +101,13 @@ double ** relaxation(double **temp_array, double precision) {
 					double old_value = temp_array[i][j]; 
 
 					// get 4 surrounding values needed to average
-					double ele_left = temp_array[i][j-1];
-					double ele_right = temp_array[i][j+1];
-					double ele_up = temp_array[i-1][j];
-					double ele_down = temp_array[i+1][j];
+					double v_left = temp_array[i][j-1];
+					double v_right = temp_array[i][j+1];
+					double v_up = temp_array[i-1][j];
+					double v_down = temp_array[i+1][j];
 
 					// perform the calculation
-					double new_value = (ele_left + ele_right + ele_up + ele_down) / 4;
+					double new_value = (v_left + v_right + v_up + v_down) / 4;
 
 					// check if difference is smaller than precision
 					difference = fabs(old_value - new_value);
@@ -126,10 +125,10 @@ double ** relaxation(double **temp_array, double precision) {
 
 					// print data
 					printf("Value to replace: %f\n", old_value);
-					/*printf("ele_left: %f\n", ele_left);
-					printf("ele_right: %f\n", ele_right);
-					printf("ele_up: %f\n", ele_up);
-					printf("ele_down: %f\n", ele_down);*/
+					/*printf("v_left: %f\n", v_left);
+					printf("v_right: %f\n", v_right);
+					printf("v_up: %f\n", v_up);
+					printf("v_down: %f\n", v_down);*/
 					printf("New value = %f\n", new_value);
 					printf("precision_counter: %d\n", precision_counter);
 				}
@@ -165,13 +164,13 @@ double double_random (double low, double high) {
 /**
  * Prints the initial data values used to initiate the program.
  */
-void print_initial_data(double **array, int dimension, int threads, double precision) {
+void print_initial_data(int threads, double precision, double **arr) {
 	printf("------------------------ Initial data:\n");
-	printf("Array dimension: %d\n", dimension);
+	printf("Array dimension: %d\n", dim);
 	printf("Number of threads: %d\n", threads);
 	printf("Precision: %f\n", precision);
 	printf("Square array:\n");
-	print_array(array);
+	print_array(arr);
 }
 
 
