@@ -80,8 +80,9 @@ double ** create_square_array(void) {
 
 /*
  * Loops through the square array to replace a value with an average of its 4
- * neighbouring values (left, right, up and down). Does not ((update boundary
- * values.
+ * neighbouring values (left, right, up and down). Loops until all the values 
+ * changed differ by less than the precision specified at the start of the
+ * program. Does not update boundary values.
  * Returns a new square array with the updated values.
  */
 double ** relaxation(double **square_array, double precision) {
