@@ -17,33 +17,37 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
-#define dim 4
 
 
 // Function definitions
-double ** create_square_array(void);
-double ** relaxation(double **square_array, double precision);
-void check_malloc(double **sq_array);
+void initialise_square_array(void);
+void relaxation(double precision);
+void check_malloc(void);
 double double_random(double low, double high);
-void print_initial_data(int threads, double precision, double **array);
-void print_array(double **array);
+void print_initial_data(double precision);
+void print_array(void);
 void print_relaxation_data(double old, double l, double r, double u, double d, double new, int precision);
+
+
+// Global variables
+#define dim 4		// square array dimensions
+#define num_thr 2	// number of threads to use
+double **square_array;
 
 
 /*
  * Program entry.
  */
 int main() {
-	// initial values
-	double **square_array = create_square_array();
-	int number_of_threads = 2;
-	double precision = 0.1;
-	print_initial_data(number_of_threads, precision, square_array);
+	// initialise values
+	double precision = 0.000001; // precision to perform relaxation at
+	initialise_square_array();
+	print_initial_data(precision);
 
 	// iterate averaging until precision reached
-	square_array = relaxation(square_array, precision);
+	relaxation(precision);
 	printf("\n------------------------ Final square array\n");
-	print_array(square_array);
+	print_array();
 
 	// free allocated array space and successfully exit program
  	free(square_array);
@@ -52,29 +56,28 @@ int main() {
 
 
 /*
- * Creates an square array by creating an initial array of pointers, each 
+ * Initialises a square array by creating an initial array of pointers, each 
  * looking at 1D arrays of doubles.
  */
-double ** create_square_array(void) {
+void initialise_square_array(void) {
 	// allocate space for a 1D array of double pointers.
-	double **sq_array = malloc(dim * sizeof(double*));
-	check_malloc(sq_array);
+	square_array = malloc(dim * sizeof(double*));
+	check_malloc();
 
 	// allocate space for multiple 1D arrays of doubles
 	for (int i = 0; i < dim; i++) {
-		sq_array[i] = malloc(dim * sizeof(double));
-		check_malloc(sq_array);
+		square_array[i] = malloc(dim * sizeof(double));
+		check_malloc();
 	}
 
 	// populate the array with random doubles
 	for (int i = 0; i < dim; i++) {
 		for (int j = 0; j < dim; j++) {
-			//sq_array[i][j] = rand() % 10;
-			sq_array[i][j] = double_random(1.0, 10.0);
+			square_array[i][j] = (i*dim) + (j*j*j*j) + 10;
+			//square_array[i][j] = double_random(1.0, 10.0);
+			//square_array[i][j] = rand() % 10;
 		}
 	}
-
-	return sq_array;
 }
 
 
@@ -85,7 +88,7 @@ double ** create_square_array(void) {
  * program. Does not update boundary values.
  * Returns a new square array with the updated values.
  */
-double ** relaxation(double **square_array, double precision) {
+void relaxation(double precision) {
 	bool is_above_precision = true;
 	int precision_counter = 0;
 	int iteration_counter = 0;
@@ -133,7 +136,6 @@ double ** relaxation(double **square_array, double precision) {
 		}
 		iteration_counter++;
 	}
-	return square_array;
 }
 
 
@@ -142,8 +144,8 @@ double ** relaxation(double **square_array, double precision) {
  * square array of doubles.
  * If not, exit the program with a failure.
  */
-void check_malloc(double **sq_array) {
-	if (sq_array == NULL) {
+void check_malloc(void) {
+	if (square_array == NULL) {
 		fprintf(stderr, "Failed to allocate space for the array.\n");
 		exit(EXIT_FAILURE);
 	}
@@ -161,23 +163,23 @@ double double_random (double low, double high) {
 /*
  * Prints the initial data values used to initiate the program.
  */
-void print_initial_data(int threads, double precision, double **arr) {
+void print_initial_data(double precision) {
 	printf("------------------------ Initial data:\n");
 	printf("Array dimension: %d\n", dim);
-	printf("Number of threads: %d\n", threads);
+	printf("Number of threads: %d\n", num_thr);
 	printf("Precision: %f\n", precision);
 	printf("Square array:\n");
-	print_array(arr);
+	print_array();
 }
 
 
 /*
- * Prints a square array to the command line.
+ * Prints an array to the command line.
  */
-void print_array(double **array) {
+void print_array(void) {
 	for (int i = 0; i < dim; i++) {
  		for (int j = 0; j < dim; j++) {
- 			printf("%f ", array[i][j]);
+ 			printf("%f ", square_array[i][j]);
  		}
  		printf("\n");
  	}
