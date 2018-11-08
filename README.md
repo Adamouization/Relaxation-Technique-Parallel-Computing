@@ -43,3 +43,7 @@ gcc main.c -o main.exe -Wall -Wextra -Wconversion
 * `cd` into the project directory and create a `sbatch` job submission script.
 * Submit the job to the queue: `sbatch jobscript.slurm`
 * Monitor the job in the queue: `squeue -u [user_name]`
+
+## TODO
+
+See [TODO.md](https://github.com/Adamouization/Parallel-Computing-Relaxion-Shared-Memory/blob/master/TODO.md)
