@@ -9,5 +9,6 @@
 ## Code design
 
 * [X] Move all code from the main() to individual functions.
-* [ ] Move log print statements to own funciton.
-* [ ] Create a makefile for compiling the code with GCC then running it.
+* [X] Move log print statements to own funciton.
+* [X] Create a makefile for compiling the code with GCC then running it.
+* [ ] Allow to print type of array in print_array() function
