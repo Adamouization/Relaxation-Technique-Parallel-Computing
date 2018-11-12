@@ -6,7 +6,7 @@
  * architecture using pthreads
  *
  * Local usage: 
- * 1) "gcc main.c -o main.exe -Wall -Wextra -Wconversion"
+ * 1) "gcc main.c -o main.exe -lpthread -Wall -Wextra -Wconversion"
  * 2) "main.exe"
  * 
  * Author: aj645
@@ -40,7 +40,7 @@ double **square_array;
  */
 int main() {
 	// initialise values
-	double precision = 0.000001; // precision to perform relaxation at
+	double precision = 0.1; // precision to perform relaxation at
 	initialise_square_array();
 	print_initial_data(precision);
 
