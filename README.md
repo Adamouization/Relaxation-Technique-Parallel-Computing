@@ -1,10 +1,4 @@
-# CM30225 Parallel Computing - Assessed Coursework Assignment 1
-
-* Set: Mon 22 Oct 2018
-* Due: 5pm., Monday 19 Nov 2018, via Moodle
-* Marks: 15% of course total
-* Set by: Russell Bradford
-* Environment: Balena, pthreads and C
+# Parallel Computing Relaxation Technique in a Shared Memory Architecture
 
 ## Problem Description
 
@@ -33,7 +27,7 @@ The code should run on varying sizes of arrays and varying numbers of cores in a
 ### On a local machine using GCC
 
 ```
-gcc main.c -o main.exe -Wall -Wextra -Wconversion
+gcc main.c -o main.exe -lpthread -Wall -Wextra -Wconversion
 ./main.exe
 ```
 
