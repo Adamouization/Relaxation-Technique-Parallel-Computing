@@ -60,19 +60,21 @@ int main() {
  * looking at 1D arrays of doubles.
  */
 void initialise_square_array(void) {
+	int i, j;
+	
 	// allocate space for a 1D array of double pointers.
 	square_array = malloc(dim * sizeof(double*));
 	check_malloc();
 
 	// allocate space for multiple 1D arrays of doubles
-	for (int i = 0; i < dim; i++) {
+	for (i = 0; i < dim; i++) {
 		square_array[i] = malloc(dim * sizeof(double));
 		check_malloc();
 	}
 
 	// populate the array with random doubles
-	for (int i = 0; i < dim; i++) {
-		for (int j = 0; j < dim; j++) {
+	for (i = 0; i < dim; i++) {
+		for (j = 0; j < dim; j++) {
 			square_array[i][j] = (i*dim) + (j*j*j*j) + 10;
 			//square_array[i][j] = double_random(1.0, 10.0);
 			//square_array[i][j] = rand() % 10;
@@ -94,12 +96,13 @@ void relaxation(double precision) {
 	int iteration_counter = 0;
 	double difference = 0.0; // different between old and new value
 	int number_of_values_to_change = ((dim-2) * (dim-2));
+	int i, j;
 
 	while (is_above_precision) {
 		precision_counter = 0;
 		printf("\n------------------------ Iteration #%d\n", iteration_counter);
-		for (int i = 0; i < dim; i++) {
-			for (int j = 0; j < dim; j++) {
+		for (i = 0; i < dim; i++) {
+			for (j = 0; j < dim; j++) {
 				// filter out border values
 				if ( (!((i==0) || (i==dim-1))) && (!((j==0) || (j==dim-1))) ) {
 					// value to replace
@@ -177,8 +180,9 @@ void print_initial_data(double precision) {
  * Prints an array to the command line.
  */
 void print_array(void) {
-	for (int i = 0; i < dim; i++) {
- 		for (int j = 0; j < dim; j++) {
+	int i, j;
+	for (i = 0; i < dim; i++) {
+ 		for (j = 0; j < dim; j++) {
  			printf("%f ", square_array[i][j]);
  		}
  		printf("\n");
