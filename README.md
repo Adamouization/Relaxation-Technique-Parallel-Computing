@@ -44,6 +44,11 @@ gcc main.c -o main.exe -Wall -Wextra -Wconversion
 * Submit the job to the queue: `sbatch jobscript.slurm`
 * Monitor the job in the queue: `squeue -u [user_name]`
 
+### Copying files to/from Balena
+
+* from BUCS to Balena: `cp $BUCSHOME/dos/Computer\ Science\ Degree/year\ 4/CM30225/Parallel-Computing-Relaxion-Shared-Memory/main.c /home/o/aj645/scratch/cw1-shared-architecture/`
+* from Balena to BUCS: `cp /home/o/aj645/scratch/cw1-shared-architecture/job.slurm $BUCSHOME/dos/Computer\ Science\ Degree/year\ 4/CM30225/Parallel-Computing-Relaxion-Shared-Memory/`
+
 ## TODO
 
 See [TODO.md](https://github.com/Adamouization/Parallel-Computing-Relaxion-Shared-Memory/blob/master/TODO.md)
