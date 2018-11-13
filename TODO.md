@@ -14,8 +14,8 @@
 * [X] Move log print statements to own funciton.
 * [X] Create a makefile for compiling the code with GCC then running it.
 * [ ] Move array-related functions in own C file.
-* [ ] Move print-related functions in own C file.
-* [ ] Refactor code to fit all within 80 chars per line.
+* [X] Move print-related functions in own C file.
+* [X] Refactor code to fit all within 80 chars per line.
 
 ## Balena
 

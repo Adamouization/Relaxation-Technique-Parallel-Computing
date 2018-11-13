@@ -18,6 +18,7 @@
 #include <stdbool.h>
 #include <math.h>
 #include <pthread.h>
+#include "print_helpers.h"
 
 
 // Function definitions
@@ -25,9 +26,6 @@ void initialise_square_array(void);
 void* relaxation_runner(void* prec);
 void check_malloc(void);
 double double_random(double low, double high);
-void print_initial_data(double precision);
-void print_array(void);
-void print_relaxation_data(double old, double l, double r, double u, double d, double new, int precision);
 
 
 // Global variables
@@ -43,7 +41,7 @@ int main() {
 	// initialise values
 	double precision = 0.00001; // precision to perform relaxation at
 	initialise_square_array();
-	print_initial_data(precision);
+	print_initial_data(dim, num_thr, precision, square_array);
 	
 	// initialise thread data
 	pthread_t tid;
@@ -56,7 +54,7 @@ int main() {
 	
 	// print final array
 	printf("\n------------------------ Final square array\n");
-	print_array();
+	print_array(dim, square_array);
 
 	// free allocated array space and successfully exit program
  	free(square_array);
@@ -172,44 +170,4 @@ void check_malloc(void) {
  */
 double double_random (double low, double high) {
     return ((double)rand() * (high-low)) / (double)RAND_MAX + low;
-}
-
-
-/*
- * Prints the initial data values used to initiate the program.
- */
-void print_initial_data(double precision) {
-	printf("------------------------ Initial data:\n");
-	printf("Array dimension: %d\n", dim);
-	printf("Number of threads: %d\n", num_thr);
-	printf("Precision: %f\n", precision);
-	printf("Square array:\n");
-	print_array();
-}
-
-
-/*
- * Prints an array to the command line.
- */
-void print_array(void) {
-	int i, j;
-	for (i = 0; i < dim; i++) {
- 		for (j = 0; j < dim; j++) {
- 			printf("%f ", square_array[i][j]);
- 		}
- 		printf("\n");
- 	}
-}
-
-
-/*
- * Prints the values used for each iteration of the relaxation technique.
- */
-void print_relaxation_data(double old, double l, double r, double u, double d, 
-	double new, int precision) {
-	printf("Value to replace: %f\n", old);
-	printf("l: %f, r: %f, u: %f, d: %f\n", l, r, u, d);
-	printf("New value = %f\n", new);
-	printf("precision_counter: %d\n", precision);
-	printf("------\n");
 }
