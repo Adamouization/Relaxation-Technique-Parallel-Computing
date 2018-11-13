@@ -1,3 +1,14 @@
+/**
+ * CM30225 Parallel Computing
+ * Assessment Coursework 1
+ * 
+ * Source file for functions used to print data on the command line.
+ * 
+ * Author: aj645
+ * Date: 19-Nov-2018
+ */
+ 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "print_helpers.h"
