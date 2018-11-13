@@ -1,7 +1,13 @@
-CC=gcc
-CFLAGS=-pthread -Wall -Wextra -Wconversion
+CC			= gcc
+CFLAGS		= -Wall -Wextra -Wconversion
+LDFLAGS		= -pthread
+OBJFILES	= main.o array_helpers.o print_helpers.o
+TARGET		= main
 
-main: main.c
-	clear
-	$(CC) main.c array_helpers.c print_helpers.c -o main.exe $(CFLAGS)
-	./main.exe
+all: $(TARGET)
+
+$(TARGET): $(OBJFILES)
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJFILES) $(LDFLAGS)
+	
+clean:
+	rm -rf $(OBJFILES) $(TARGET) *~
