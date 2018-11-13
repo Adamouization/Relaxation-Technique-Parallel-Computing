@@ -13,7 +13,7 @@
 * [X] Move all code from the main() to individual functions.
 * [X] Move log print statements to own funciton.
 * [X] Create a makefile for compiling the code with GCC then running it.
-* [ ] Move array-related functions in own C file.
+* [X] Move array-related functions in own C file.
 * [X] Move print-related functions in own C file.
 * [X] Refactor code to fit all within 80 chars per line.
 
