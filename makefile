@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-lpthread -Wall -Wextra -Wconversion
+CFLAGS=-pthread -Wall -Wextra -Wconversion
 
 main: main.c
 	clear
