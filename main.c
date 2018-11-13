@@ -6,7 +6,7 @@
  * architecture using pthreads
  *
  * Local usage: 
- * 1) "gcc main.c -o main.exe -lpthread -Wall -Wextra -Wconversion"
+ * 1) "gcc main.c -o main.exe -pthread -Wall -Wextra -Wconversion"
  * 2) "main.exe"
  * 
  * Author: aj645
@@ -17,11 +17,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
+#include <pthread.h>
 
 
 // Function definitions
 void initialise_square_array(void);
-void relaxation(double precision);
+void* relaxation_runner(void* prec);
 void check_malloc(void);
 double double_random(double low, double high);
 void print_initial_data(double precision);
@@ -40,12 +41,20 @@ double **square_array;
  */
 int main() {
 	// initialise values
-	double precision = 0.1; // precision to perform relaxation at
+	double precision = 0.00001; // precision to perform relaxation at
 	initialise_square_array();
 	print_initial_data(precision);
-
-	// iterate averaging until precision reached
-	relaxation(precision);
+	
+	// initialise thread data
+	pthread_t tid;
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	
+	// perform relaxation in parallel
+	pthread_create(&tid, &attr, relaxation_runner, &precision);
+	pthread_join(tid, NULL); // wait until thread fiishes running
+	
+	// print final array
 	printf("\n------------------------ Final square array\n");
 	print_array();
 
@@ -75,9 +84,9 @@ void initialise_square_array(void) {
 	// populate the array with random doubles
 	for (i = 0; i < dim; i++) {
 		for (j = 0; j < dim; j++) {
-			square_array[i][j] = (i*dim) + (j*j*j*j) + 10;
+			//square_array[i][j] = (i*dim) + (j*j*j*j) + 10;
 			//square_array[i][j] = double_random(1.0, 10.0);
-			//square_array[i][j] = rand() % 10;
+			square_array[i][j] = rand() % 10;
 		}
 	}
 }
@@ -90,12 +99,14 @@ void initialise_square_array(void) {
  * program. Does not update boundary values.
  * Returns a new square array with the updated values.
  */
-void relaxation(double precision) {
+void* relaxation_runner(void* prec) {
 	bool is_above_precision = true;
 	int precision_counter = 0;
 	int iteration_counter = 0;
 	double difference = 0.0; // different between old and new value
 	int number_of_values_to_change = ((dim-2) * (dim-2));
+	double *precision_ptr = (double*) prec;
+	double precision = *precision_ptr;
 	int i, j;
 
 	while (is_above_precision) {
@@ -139,6 +150,7 @@ void relaxation(double precision) {
 		}
 		iteration_counter++;
 	}
+	pthread_exit(0);
 }
 
 
