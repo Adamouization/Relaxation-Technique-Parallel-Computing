@@ -19,4 +19,4 @@
 
 ## Balena
 
-* [ ] Add email address in job script for notifications when job finishes running.
+* [X] Add email address in job script for notifications when job finishes running.
