@@ -28,32 +28,46 @@ void* relaxation_runner(void* prec);
 
 
 // Global variables
-int dim = 4;		// square array dimensions
-int num_thr = 2;	// number of threads to use
+bool DEBUG = true;		// print data to the command line
+int dim = 7;			// square array dimensions
+int num_thr = 2;		// number of threads to use
+#define prec 0.1
 double **square_array;
-
+struct relaxation_data {
+	double precision;	// precision to perform relaxation at
+};
+pthread_mutex_t square_array_mutex;
 
 /*
  * Program entry.
  */
 int main() {
 	// initialise values
-	double precision = 0.1; // precision to perform relaxation at
 	square_array = initialise_square_array(dim);
-	print_initial_data(dim, num_thr, precision, square_array);
+	if (DEBUG) print_initial_data(dim, num_thr, prec, square_array);
 	
-	// initialise thread data
-	pthread_t tid;
-	pthread_attr_t attr;
-	pthread_attr_init(&attr);
-	
-	// perform relaxation in parallel
-	pthread_create(&tid, &attr, relaxation_runner, &precision);
-	pthread_join(tid, NULL); // wait until thread fiishes running
+	// initialise thread data perform relaxation in parallel
+	pthread_t tids[num_thr];
+	struct relaxation_data args[num_thr];
+	int i;
+	for (i = 0; i < num_thr; i++) {
+		args[i].precision = prec;
+
+		pthread_attr_t attr;
+		pthread_attr_init(&attr);
+		pthread_create(&tids[i], &attr, relaxation_runner, &args[i].precision);
+	}
+
+	// wait until thread finishes running
+	for (i = 0; i < num_thr; i++) {
+		pthread_join(tids[i], NULL);
+	}
 	
 	// print final array
-	printf("\n------------------------------------------ Final square array\n");
-	print_array(dim, square_array);
+	if (DEBUG) {
+		printf("\n-------------------------------------- Final square array\n");
+		print_array(dim, square_array);
+	}
 
 	// free allocated array space and successfully exit program
  	free(square_array);
@@ -79,12 +93,20 @@ void* relaxation_runner(void* arg) {
 
 	while (is_above_precision) {
 		precision_counter = 0;
-		printf("\n------------------------------------------ Iteration #%d\n", 
-			iteration_counter);
+
+		if (DEBUG) {
+			printf(
+				"\n---------------------------------------- Iteration #%d\n", 
+				iteration_counter
+			);
+		}
+		
 		for (i = 0; i < dim; i++) {
 			for (j = 0; j < dim; j++) {
 				// filter out border values
 				if ( (!((i==0) || (i==dim-1))) && (!((j==0) || (j==dim-1))) ) {
+					pthread_mutex_lock(&square_array_mutex);
+
 					// value to replace
 					double old_value = square_array[i][j]; 
 
@@ -111,9 +133,13 @@ void* relaxation_runner(void* arg) {
 					// replace the old value with the new one
 					square_array[i][j] = new_value;
 
-					// print data
-					print_relaxation_data(old_value, v_left, v_right, v_up, 
+					pthread_mutex_unlock(&square_array_mutex);
+
+					// print iteration data
+					if (DEBUG) {
+						print_relaxation_data(old_value, v_left, v_right, v_up, 
 						v_down, new_value, precision_counter);
+					}
 				}
 			}
 		}
