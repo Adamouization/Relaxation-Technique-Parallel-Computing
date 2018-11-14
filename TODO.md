@@ -5,7 +5,7 @@
 * [X] Implement relaxation technique sequentially
 * [X] Run relaxation in a single thread
 * [ ] Implement relaxation on multiple threads (lock array for now, no need to be efficient)
-* [ ] Find 100% sequential code from past commits and store in own file
+* [X] Find 100% sequential code from past commits and store in own file
 * [ ] Implement relaxation on multiple threads efficiently (synchronization, lock specific values only)
 * [ ] Write report in LaTeX
 
