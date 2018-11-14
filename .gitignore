@@ -30,6 +30,8 @@
 
 # Executables
 main
+relaxation
+sequential
 *.exe
 *.out
 *.app
