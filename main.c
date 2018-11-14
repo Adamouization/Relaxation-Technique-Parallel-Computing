@@ -29,9 +29,9 @@ void* relaxation_runner(void* prec);
 
 // Global variables
 bool DEBUG = true;			// print data to the command line
-int dim = 7;				// square array dimensions
-int num_thr = 2;			// number of threads to use
-#define prec 0.1			// precision to perform relaxation at
+int dim = 5;				// square array dimensions
+int num_thr = 10;			// number of threads to use
+#define prec 0.0001			// precision to perform relaxation at
 double **square_array;		// global square array to be accessed by all threads
 struct relaxation_data {	// struct representing input data for each thread
 	double precision;	
