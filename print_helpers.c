@@ -8,7 +8,6 @@
  * Date: 19-Nov-2018
  */
  
-
 #include <stdio.h>
 #include "print_helpers.h"
 
@@ -22,7 +21,7 @@ void print_initial_data(int dimension, int num_thr, double precision,
 	printf("Array dimension: %d\n", dimension);
 	printf("Number of threads: %d\n", num_thr);
 	printf("Precision: %f\n", precision);
-	printf("Square array:\n");
+	printf("Initial square array:\n");
 	print_array(dimension, square_array);
 }
 
