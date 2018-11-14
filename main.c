@@ -68,14 +68,13 @@ int main() {
  * program. Does not update boundary values.
  * Returns a new square array with the updated values.
  */
-void* relaxation_runner(void* prec) {
+void* relaxation_runner(void* arg) {
 	bool is_above_precision = true;
 	int precision_counter = 0;
 	int iteration_counter = 0;
 	double difference = 0.0; // different between old and new value
 	int number_of_values_to_change = ((dim-2) * (dim-2));
-	double *precision_ptr = (double*) prec;
-	double precision = *precision_ptr;
+	double precision = *(double *) arg;
 	int i, j;
 
 	while (is_above_precision) {
