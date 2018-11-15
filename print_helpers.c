@@ -15,14 +15,14 @@
 /*
  * Prints the initial data values used to initiate the program.
  */
-void print_initial_data(int dimension, int num_thr, float precision, 
+void print_parameters(int dimension, int num_thr, float precision, 
 	float** square_array) {
-	printf("------------------------ Initial data:\n");
-	printf("Array dimension: %d\n", dimension);
+	printf("\nArray dimension: %d\n", dimension);
 	printf("Number of threads: %d\n", num_thr);
 	printf("Precision: %f\n", precision);
 	printf("Initial square array:\n");
 	print_array(dimension, square_array);
+	printf("\n");
 }
 
 
@@ -41,13 +41,22 @@ void print_array(int dimension, float** square_array) {
 
 
 /*
- * Prints the values used for each iteration of the relaxation technique.
+ * Prints the values describing the current thread executing along with counters
+ * indicating the relaxation technique's progress.
  */
-void print_relaxation_data(float old, float l, float r, float u, float d, 
-	float new, int precision) {
-	printf("Value to replace: %f\n", old);
-	printf("l: %f, r: %f, u: %f, d: %f\n", l, r, u, d);
-	printf("New value = %f\n", new);
-	printf("precision_counter: %d\n", precision);
-	printf("------\n");
+void print_relaxation_thread_data(int tid, int updates_counter, int i, int j) {
+	printf("Thread %d executing at [%d,%d] (iteration #%d)\n", tid, i, j, 
+		updates_counter);
+}
+
+
+/*
+ * Prints the values used to update a value of the square array in a single 
+ * iteration.
+ */
+void print_relaxation_values_data(float old, float l, float r, float u, float d, 
+	float new, int prec_count) {
+	printf("Replacing %f with %f (l: %f, r: %f, u: %f, d: %f)\n", old, new, l, 
+		r, u, d);
+	printf("Precision is %d\n\n", prec_count);
 }

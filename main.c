@@ -30,13 +30,13 @@ void* relaxation_runner(void* arg);
 /* Global variables */
 bool DEBUG = true;				// print data to the command line
 int dim = 5;					// square array dimensions
-int num_thr = 4;				// number of threads to use
-float precision = 0.01f;		// precision to perform relaxation at
+int num_thr = 3;				// number of threads to use
+float precision = 0.1f;			// precision to perform relaxation at
 float **square_array;			// global square array of floats
+pthread_mutex_t **mutex_array;	// array of mutexes to lock square array values
 struct relaxation_data {		// struct representing input data for each thread
 	int thr_number;				// thread number (in order of creation)
 };
-pthread_mutex_t **mutex_array;	// array of mutexes to lock square array values
 
 /*
  * Program entry.
@@ -46,7 +46,7 @@ int main() {
 	square_array = initialise_square_array(dim);
 	mutex_array = initialise_mutex_array(dim);
 
-	if (DEBUG) print_initial_data(dim, num_thr, precision, square_array);
+	if (DEBUG) print_parameters(dim, num_thr, precision, square_array);
 	
 	// initialise and create threads to perform relaxation in parallel
 	pthread_t tids[num_thr];				// array of thread IDs
@@ -91,25 +91,17 @@ void* relaxation_runner(void* arg) {
 	// local variables
 	bool is_above_precision = true;
 	int precision_counter = 0;
-	int iteration_counter = 0;
+	int updates_counter = 0;
 	float difference = 0.0; // different between old and new value
 	int number_of_values_to_change = ((dim-2) * (dim-2));
 	int i, j;
 
 	if (DEBUG) {
-		printf("Thread %d (id #%lu) created.\n", thread_number, pthread_self());
+		printf("Thread %d (id #%lu) created.\n\n", thread_number, 
+			pthread_self());
 	}
 		
-	precision_counter = 0;
 	while (is_above_precision) {
-
-		if (DEBUG) {
-			printf(
-				"\n---------------------------------------- Iteration #%d\n", 
-				iteration_counter
-			);
-		}
-		
 		for (i = 0; i < dim; i++) {
 			for (j = 0; j < dim; j++) {
 				// filter out border values
@@ -129,6 +121,7 @@ void* relaxation_runner(void* arg) {
 					float new_value = (v_left + v_right + v_up + v_down) / 4;
 					square_array[i][j] = new_value;
 					pthread_mutex_unlock(&mutex_array[i][j]);
+					updates_counter++;
 
 					// check if difference is smaller than precision
 					difference = (float)fabs(old_value - new_value);
@@ -145,15 +138,18 @@ void* relaxation_runner(void* arg) {
 
 					// print current iteration data
 					if (DEBUG) {
-						print_relaxation_data(old_value, v_left, v_right, v_up, 
-						v_down, new_value, precision_counter);
+						print_relaxation_thread_data(thread_number, 
+							updates_counter, i, j);
+						print_relaxation_values_data(old_value, v_left, v_right, 
+							v_up, v_down, new_value, precision_counter);
 					}
 				}
 			}
 		}
-
-		iteration_counter++;
 	}
-	printf("Thread %d (id #%lu) exited.\n", thread_number, pthread_self());
+	
+	if (DEBUG) printf("Thread %d (id #%lu) exited.\n\n", thread_number, 
+		pthread_self());
+	
 	pthread_exit(0);
 }
