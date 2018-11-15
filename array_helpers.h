@@ -14,7 +14,7 @@ float** initialise_square_array(int dim);
 pthread_mutex_t** initialise_mutex_array(int dim);
 
  
-void check_malloc(float** square_array);
+void check_float_malloc(float** square_array);
 
 
 void check_mutex_malloc(pthread_mutex_t** mutex_array);

@@ -23,15 +23,15 @@
 #include "print_helpers.h"
 
 
-// Function definitions
+/* Function definitions */
 void* relaxation_runner(void* arg);
 
 
-// Global variables
+/* Global variables */
 bool DEBUG = true;				// print data to the command line
 int dim = 5;					// square array dimensions
 int num_thr = 4;				// number of threads to use
-float precision = 0.1f;			// precision to perform relaxation at
+float precision = 0.01f;		// precision to perform relaxation at
 float **square_array;			// global square array of floats
 struct relaxation_data {		// struct representing input data for each thread
 	int thr_number;				// thread number (in order of creation)
@@ -114,17 +114,21 @@ void* relaxation_runner(void* arg) {
 			for (j = 0; j < dim; j++) {
 				// filter out border values
 				if ( (!((i==0) || (i==dim-1))) && (!((j==0) || (j==dim-1))) ) {
-					// value to replace
+					
+					// lock and retrieve current value to replace
+					pthread_mutex_lock(&mutex_array[i][j]);
 					float old_value = square_array[i][j]; 
 
-					// get 4 surrounding values needed to average
+					// retrieve the 4 surrounding values needed to average
 					float v_left = square_array[i][j-1];
 					float v_right = square_array[i][j+1];
 					float v_up = square_array[i-1][j];
 					float v_down = square_array[i+1][j];
 
-					// perform the calculation
+					// calculate new value, replace the old value and unlock
 					float new_value = (v_left + v_right + v_up + v_down) / 4;
+					square_array[i][j] = new_value;
+					pthread_mutex_unlock(&mutex_array[i][j]);
 
 					// check if difference is smaller than precision
 					difference = (float)fabs(old_value - new_value);
@@ -139,10 +143,7 @@ void* relaxation_runner(void* arg) {
 						is_above_precision = false;
 					}
 
-					// replace the old value with the new one
-					square_array[i][j] = new_value;
-
-					// print iteration data
+					// print current iteration data
 					if (DEBUG) {
 						print_relaxation_data(old_value, v_left, v_right, v_up, 
 						v_down, new_value, precision_counter);
