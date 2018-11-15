@@ -18,6 +18,7 @@
 * [X] Move print-related functions in own C file.
 * [X] Refactor code to fit all within 80 chars per line.
 * [X] Use global value for "debug mode" to activate/deactivate print statements (and surround print statements with if statements).
+* [X] Use floats instead of doubles.
 
 ## Balena
 

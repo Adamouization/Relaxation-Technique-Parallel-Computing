@@ -15,8 +15,8 @@
 /*
  * Prints the initial data values used to initiate the program.
  */
-void print_initial_data(int dimension, int num_thr, double precision, 
-	double** square_array) {
+void print_initial_data(int dimension, int num_thr, float precision, 
+	float** square_array) {
 	printf("------------------------ Initial data:\n");
 	printf("Array dimension: %d\n", dimension);
 	printf("Number of threads: %d\n", num_thr);
@@ -29,7 +29,7 @@ void print_initial_data(int dimension, int num_thr, double precision,
 /*
  * Prints an array to the command line.
  */
-void print_array(int dimension, double** square_array) {
+void print_array(int dimension, float** square_array) {
 	int i, j;
 	for (i = 0; i < dimension; i++) {
  		for (j = 0; j < dimension; j++) {
@@ -43,8 +43,8 @@ void print_array(int dimension, double** square_array) {
 /*
  * Prints the values used for each iteration of the relaxation technique.
  */
-void print_relaxation_data(double old, double l, double r, double u, double d, 
-	double new, int precision) {
+void print_relaxation_data(float old, float l, float r, float u, float d, 
+	float new, int precision) {
 	printf("Value to replace: %f\n", old);
 	printf("l: %f, r: %f, u: %f, d: %f\n", l, r, u, d);
 	printf("New value = %f\n", new);

@@ -8,11 +8,11 @@
  * Date: 19-Nov-2018
  */
 
-double** initialise_square_array(int dim);
+float** initialise_square_array(int dim);
  
  
-void check_malloc(double** square_array);
+void check_malloc(float** square_array);
 
 
-double double_random(double low, 
-					 double high);
+float float_random(float low, 
+				   float high);
