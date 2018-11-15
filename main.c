@@ -36,11 +36,16 @@ struct relaxation_data {		// struct representing input data for each thread
 
 
 /*
- * Loops through the square array to replace a value with an average of its 4
- * neighbouring values (left, right, up and down). Loops until all the values 
- * changed differ by less than the precision specified at the start of the
- * program. Does not update boundary values.
- * Returns a new square array with the updated values.
+ * Threaded function that loops loops through the square array of floats to 
+ * replace each value (except boundary values) with an average of its 4
+ * neighbouring values (left, right, up and down). Each thread loops until all 
+ * the updated values differ by less than the precision specified at the start 
+ * of the program. 
+ * Each thread exits once it has iterated through the array once and each update
+ * differs by less than the precision.
+ * Uses an array of mutexes, symmetric to the array of floats, to lock
+ * individual sections of the array so that only one thread updates a value at a
+ * time.
  */
 void* relaxation_runner(void* arg) {
 	// retrieve data from arg
