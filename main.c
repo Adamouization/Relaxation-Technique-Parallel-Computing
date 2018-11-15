@@ -23,10 +23,6 @@
 #include "print_helpers.h"
 
 
-/* Function definitions */
-void* relaxation_runner(void* arg);
-
-
 /* Global variables */
 bool DEBUG = false;				// print data to the command line
 int dim = 100;					// square array dimensions
@@ -37,43 +33,6 @@ pthread_mutex_t **mutex_array;	// array of mutexes to lock square array values
 struct relaxation_data {		// struct representing input data for each thread
 	int thr_number;				// thread number (in order of creation)
 };
-
-/*
- * Program entry.
- */
-int main() {
-	// initialise values
-	square_array = initialise_square_array(dim);
-	mutex_array = initialise_mutex_array(dim);
-
-	if (DEBUG) print_parameters(dim, num_thr, precision, square_array);
-	
-	// initialise and create threads to perform relaxation in parallel
-	pthread_t tids[num_thr];				// array of thread IDs
-	struct relaxation_data args[num_thr];	// array of structs for thread input
-	int i;
-	for (i = 0; i < num_thr; i++) {
-		args[i].thr_number = i + 1;	// 1-based thread numbers
-		pthread_attr_t attr;
-		pthread_attr_init(&attr);
-		pthread_create(&tids[i], &attr, relaxation_runner, &args[i]);
-	}
-
-	// wait until threads finish running
-	for (i = 0; i < num_thr; i++) {
-		pthread_join(tids[i], NULL);
-	}
-	
-	// print final array
-	if (DEBUG) {
-		printf("\n-------------------------------------- Final square array\n");
-		print_array(dim, square_array);
-	}
-
-	// free allocated array space and successfully exit program
- 	free(square_array);
-   	return 0;
-}
 
 
 /*
@@ -158,4 +117,42 @@ void* relaxation_runner(void* arg) {
 		pthread_self());
 	
 	pthread_exit(0);
+}
+
+
+/*
+ * Program entry.
+ */
+int main() {
+	// initialise values
+	square_array = initialise_square_array(dim);
+	mutex_array = initialise_mutex_array(dim);
+
+	if (DEBUG) print_parameters(dim, num_thr, precision, square_array);
+	
+	// initialise and create threads to perform relaxation in parallel
+	pthread_t tids[num_thr];				// array of thread IDs
+	struct relaxation_data args[num_thr];	// array of structs for thread input
+	int i;
+	for (i = 0; i < num_thr; i++) {
+		args[i].thr_number = i + 1;	// 1-based thread numbers
+		pthread_attr_t attr;
+		pthread_attr_init(&attr);
+		pthread_create(&tids[i], &attr, relaxation_runner, &args[i]);
+	}
+
+	// wait until threads finish running
+	for (i = 0; i < num_thr; i++) {
+		pthread_join(tids[i], NULL);
+	}
+	
+	// print final array
+	if (DEBUG) {
+		printf("\n-------------------------------------- Final square array\n");
+		print_array(dim, square_array);
+	}
+
+	// free allocated array space and successfully exit program
+ 	free(square_array);
+   	return 0;
 }
