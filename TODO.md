@@ -6,7 +6,9 @@
 * [X] Run relaxation in a single thread
 * [X] Implement relaxation on multiple threads (lock array for now, no need to be efficient)
 * [X] Find 100% sequential code from past commits and store in own file
-* [ ] Implement relaxation on multiple threads efficiently (sync float array with mutex array to lock individual values)
+* [X] Implement relaxation on multiple threads efficiently (sync float array with mutex array to lock individual values)
+* [ ] Polish code for batch submission on Balena (print parameters and time at the end).
+* [ ] Gather data in an Excel spreadsheet and plot it in a graphs.
 * [ ] Write report in LaTeX
 
 ## Code design
@@ -19,6 +21,8 @@
 * [X] Refactor code to fit all within 80 chars per line.
 * [X] Use global value for "debug mode" to activate/deactivate print statements (and surround print statements with if statements).
 * [X] Use floats instead of doubles.
+* [ ] Remove global function definition in main().
+* [ ] Move all print statements in print_helpers.c
 
 ## Balena
 

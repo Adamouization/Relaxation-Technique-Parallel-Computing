@@ -28,10 +28,10 @@ void* relaxation_runner(void* arg);
 
 
 /* Global variables */
-bool DEBUG = true;				// print data to the command line
-int dim = 5;					// square array dimensions
-int num_thr = 3;				// number of threads to use
-float precision = 0.1f;			// precision to perform relaxation at
+bool DEBUG = false;				// print data to the command line
+int dim = 100;					// square array dimensions
+int num_thr = 500;				// number of threads to use
+float precision = 0.01f;		// precision to perform relaxation at
 float **square_array;			// global square array of floats
 pthread_mutex_t **mutex_array;	// array of mutexes to lock square array values
 struct relaxation_data {		// struct representing input data for each thread
@@ -109,7 +109,7 @@ void* relaxation_runner(void* arg) {
 					
 					// lock and retrieve current value to replace
 					pthread_mutex_lock(&mutex_array[i][j]);
-					float old_value = square_array[i][j]; 
+					float old_value = square_array[i][j];
 
 					// retrieve the 4 surrounding values needed to average
 					float v_left = square_array[i][j-1];
@@ -132,10 +132,12 @@ void* relaxation_runner(void* arg) {
 					}
 
 					// if difference smaller than precision for all values, stop
-					if (precision_counter == number_of_values_to_change) {
+					if (precision_counter >= number_of_values_to_change) {
 						is_above_precision = false;
+						break;
 					}
 
+					pthread_mutex_lock(&mutex_array[i][j]);	
 					// print current iteration data
 					if (DEBUG) {
 						print_relaxation_thread_data(thread_number, 
@@ -143,7 +145,11 @@ void* relaxation_runner(void* arg) {
 						print_relaxation_values_data(old_value, v_left, v_right, 
 							v_up, v_down, new_value, precision_counter);
 					}
+					pthread_mutex_unlock(&mutex_array[i][j]);
 				}
+			}
+			if (!(is_above_precision)) {
+				break;
 			}
 		}
 	}
