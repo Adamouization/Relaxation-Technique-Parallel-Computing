@@ -24,20 +24,19 @@
 
 
 // Function definitions
-void* relaxation_runner(void* prec);
+void* relaxation_runner(void* arg);
 
 
 // Global variables
-bool DEBUG = true;			// print data to the command line
-int dim = 5;				// square array dimensions
-int num_thr = 4;			// number of threads to use
-#define prec 0.1			// precision to perform relaxation at
-float **square_array;		// global square array to be accessed by all threads
-struct relaxation_data {	// struct representing input data for each thread
-	int thr_number;
-	float precision;
+bool DEBUG = true;				// print data to the command line
+int dim = 5;					// square array dimensions
+int num_thr = 4;				// number of threads to use
+float precision = 0.1f;			// precision to perform relaxation at
+float **square_array;			// global square array of floats
+struct relaxation_data {		// struct representing input data for each thread
+	int thr_number;				// thread number (in order of creation)
 };
-pthread_mutex_t square_array_mutex;	// mutex used to lock square array
+pthread_mutex_t **mutex_array;	// array of mutexes to lock square array values
 
 /*
  * Program entry.
@@ -45,15 +44,16 @@ pthread_mutex_t square_array_mutex;	// mutex used to lock square array
 int main() {
 	// initialise values
 	square_array = initialise_square_array(dim);
-	if (DEBUG) print_initial_data(dim, num_thr, prec, square_array);
+	mutex_array = initialise_mutex_array(dim);
+
+	if (DEBUG) print_initial_data(dim, num_thr, precision, square_array);
 	
-	// initialise and create threads to perform relaxation
+	// initialise and create threads to perform relaxation in parallel
 	pthread_t tids[num_thr];				// array of thread IDs
 	struct relaxation_data args[num_thr];	// array of structs for thread input
 	int i;
 	for (i = 0; i < num_thr; i++) {
 		args[i].thr_number = i + 1;	// 1-based thread numbers
-		args[i].precision = prec;
 		pthread_attr_t attr;
 		pthread_attr_init(&attr);
 		pthread_create(&tids[i], &attr, relaxation_runner, &args[i]);
@@ -87,7 +87,6 @@ void* relaxation_runner(void* arg) {
 	// retrieve data from arg
 	struct relaxation_data *arg_struct = (struct relaxation_data*) arg;
 	int thread_number = arg_struct->thr_number;
-	float precision = arg_struct->precision;
 
 	// local variables
 	bool is_above_precision = true;
@@ -97,9 +96,10 @@ void* relaxation_runner(void* arg) {
 	int number_of_values_to_change = ((dim-2) * (dim-2));
 	int i, j;
 
-	printf("Thread %d (id #%lu) created.\n", thread_number, pthread_self());
-	if (DEBUG) printf("I am thread %lu\n", pthread_self());
-
+	if (DEBUG) {
+		printf("Thread %d (id #%lu) created.\n", thread_number, pthread_self());
+	}
+		
 	precision_counter = 0;
 	while (is_above_precision) {
 
@@ -114,8 +114,6 @@ void* relaxation_runner(void* arg) {
 			for (j = 0; j < dim; j++) {
 				// filter out border values
 				if ( (!((i==0) || (i==dim-1))) && (!((j==0) || (j==dim-1))) ) {
-					pthread_mutex_lock(&square_array_mutex);
-
 					// value to replace
 					float old_value = square_array[i][j]; 
 
@@ -129,7 +127,7 @@ void* relaxation_runner(void* arg) {
 					float new_value = (v_left + v_right + v_up + v_down) / 4;
 
 					// check if difference is smaller than precision
-					difference = fabs(old_value - new_value);
+					difference = (float)fabs(old_value - new_value);
 					if (difference < precision) {
 						precision_counter++;
 					} else {
@@ -143,8 +141,6 @@ void* relaxation_runner(void* arg) {
 
 					// replace the old value with the new one
 					square_array[i][j] = new_value;
-
-					pthread_mutex_unlock(&square_array_mutex);
 
 					// print iteration data
 					if (DEBUG) {

@@ -10,6 +10,7 @@
  
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include "array_helpers.h"
 
 
@@ -36,11 +37,39 @@ float** initialise_square_array(int dim) {
 	for (i = 0; i < dim; i++) {
 		for (j = 0; j < dim; j++) {
 			//sq_array[i][j] = (i*dim) + (j*j*j*j) + 10;
-			sq_array[i][j] = float_random(1.0, 10.0);
-			//sq_array[i][j] = (float)(rand() % 100);
+			sq_array[i][j] = (float)(rand() % 100);
 		}
 	}
 	return sq_array;
+}
+
+
+/*
+ * 
+ */
+pthread_mutex_t** initialise_mutex_array(int dim) {
+	long unsigned int dimension = (long unsigned int) dim;
+	pthread_mutex_t** mtx_array;
+	int i, j;
+
+	// allocate space for a 1D array of float mutexes.
+	mtx_array = malloc(dimension * sizeof(pthread_mutex_t*));
+	check_mutex_malloc(mtx_array);
+
+	// allocate space for multiple 1D arrays of doubles
+	for (i = 0; i < dim; i++) {
+		mtx_array[i] = malloc(dimension * sizeof(pthread_mutex_t));
+		check_mutex_malloc(mtx_array);
+	}
+
+	// populate the array with initialised mutexes
+	for (i = 0; i < dim; i++) {
+		for (j = 0; j < dim; j++) {
+			pthread_mutex_init(&mtx_array[i][j], NULL);
+		}
+	}
+
+	return mtx_array;
 }
 
 
@@ -57,9 +86,12 @@ void check_malloc(float** square_array) {
 }
 
 
-/*
- * Returns a random float ranging from 'low' to 'high'.
+/**
+ *
  */
-float float_random (float low, float high) {
-    return ((float)rand() * (high-low)) / (float)RAND_MAX + low;
+void check_mutex_malloc(pthread_mutex_t** mutex_array) {
+	if (mutex_array == NULL) {
+		fprintf(stderr, "Failed to allocate space for the mutex array.\n");
+		exit(EXIT_FAILURE);
+	}
 }
