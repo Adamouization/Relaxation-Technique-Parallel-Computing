@@ -32,3 +32,8 @@ void print_relaxation_values_data(float old,
 						   		  float d, 
 						   		  float new,
 						   		  int prec_count);
+
+
+void print_final_results(int dimension, 
+						 int num_thr, 
+						 float precision);

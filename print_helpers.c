@@ -60,3 +60,10 @@ void print_relaxation_values_data(float old, float l, float r, float u, float d,
 		r, u, d);
 	printf("Precision is %d\n\n", prec_count);
 }
+
+
+void print_final_results(int dimension, int num_thr, float precision) {
+	printf("Array dimension: %d\n", dimension);
+	printf("Threads used: %d\n", num_thr);
+	printf("Precision used: %f\n", precision);
+}

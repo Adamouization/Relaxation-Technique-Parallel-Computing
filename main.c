@@ -150,10 +150,13 @@ int main() {
 	for (i = 0; i < num_thr; i++) {
 		pthread_join(tids[i], NULL);
 	}
+
+	// print final results
+	print_final_results(dim, num_thr, precision);
 	
 	// print final array
 	if (DEBUG) {
-		printf("\n-------------------------------------- Final square array\n");
+		printf("\nFinal square array\n");
 		print_array(dim, square_array);
 	}
 
