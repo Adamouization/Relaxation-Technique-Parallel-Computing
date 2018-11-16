@@ -32,6 +32,12 @@ elements differ from the previous ones by less than the precision. The code runs
 * Monitor the job in the queue: `squeue -u [user_name]`
 * View the results in the `relaxation.<job_id>.out` file using the `cat` command.
 
+### Submitting multiple files using a bash script
+
+* `./submit_multiple_batch 1`
+* `cat *.out`
+* Use following regex to retrieve time by using this regex `\=.(\d+)\..(\d+)` and pasting the output in [regex101](https://regex101.com/)
+
 ### Copying files to/from Balena
 
 * from BUCS to Balena: `cp $BUCSHOME/dos/year\ 4/CM30225/Parallel-Computing-Relaxion-Shared-Memory/<file> /home/o/aj645/scratch/cw1-shared-architecture/`

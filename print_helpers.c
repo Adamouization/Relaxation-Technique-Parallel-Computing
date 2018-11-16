@@ -62,8 +62,11 @@ void print_relaxation_values_data(float old, float l, float r, float u, float d,
 }
 
 
+/*
+ * Prints the parameters used at the end of the script for logging purposes.
+ */
 void print_final_results(int dimension, int num_thr, float precision) {
-	printf("Array dimension: %d\n", dimension);
 	printf("Threads used: %d\n", num_thr);
+	printf("Array dimension: %d\n", dimension);
 	printf("Precision used: %f\n", precision);
 }
