@@ -11,7 +11,7 @@
  * 2) "./main.exe"
  * 
  * Author: aj645
- * Date: 19-Nov-2018
+ * Date: 19-Nov-2018make
  */
 
 #include <stdio.h>
@@ -19,6 +19,7 @@
 #include <stdbool.h>
 #include <math.h>
 #include <pthread.h>
+#include <sys/time.h>
 #include "array_helpers.h"
 #include "print_helpers.h"
 
@@ -30,7 +31,8 @@ int num_thr = 500;				// number of threads to use
 float precision = 0.01f;		// precision to perform relaxation at
 float **square_array;			// global square array of floats
 pthread_mutex_t **mutex_array;	// array of mutexes to lock square array values
-struct relaxation_data {		// struct representing input data for each thread
+struct timeval time1, time2;	// structure used to calculate program time
+struct relaxation_data {		// struct representing input data for a thread
 	int thr_number;				// thread number (in order of creation)
 };
 
@@ -135,6 +137,9 @@ int main() {
 
 	if (DEBUG) print_parameters(dim, num_thr, precision, square_array);
 	
+	// start recording time
+	gettimeofday(&time1, NULL);
+
 	// initialise and create threads to perform relaxation in parallel
 	pthread_t tids[num_thr];				// array of thread IDs
 	struct relaxation_data args[num_thr];	// array of structs for thread input
@@ -151,8 +156,14 @@ int main() {
 		pthread_join(tids[i], NULL);
 	}
 
+	// stop recording time
+	gettimeofday(&time2, NULL);
+
 	// print final results
 	print_final_results(dim, num_thr, precision);
+	printf ("Total time = %f seconds\n", 
+		(double) (time2.tv_usec - time1.tv_usec) / 1000000 +
+		(double) (time2.tv_sec - time1.tv_sec));
 	
 	// print final array
 	if (DEBUG) {

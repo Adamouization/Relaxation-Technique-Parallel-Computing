@@ -7,7 +7,7 @@
 * [X] Implement relaxation on multiple threads (lock array for now, no need to be efficient)
 * [X] Find 100% sequential code from past commits and store in own file
 * [X] Implement relaxation on multiple threads efficiently (sync float array with mutex array to lock individual values)
-* [ ] Polish code for batch submission on Balena (print parameters and time at the end).
+* [X] Polish code for batch submission on Balena (print parameters and time at the end).
 * [ ] Gather data in an Excel spreadsheet and plot it in a graphs.
 * [ ] Write report in LaTeX
 
