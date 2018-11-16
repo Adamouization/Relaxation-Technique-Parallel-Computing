@@ -34,8 +34,8 @@ elements differ from the previous ones by less than the precision. The code runs
 
 ### Copying files to/from Balena
 
-* from BUCS to Balena: `cp $BUCSHOME/dos/Computer\ Science\ Degree/year\ 4/CM30225/Parallel-Computing-Relaxion-Shared-Memory/main.c /home/o/aj645/scratch/cw1-shared-architecture/`
-* from Balena to BUCS: `cp /home/o/aj645/scratch/cw1-shared-architecture/job.slurm $BUCSHOME/dos/Computer\ Science\ Degree/year\ 4/CM30225/Parallel-Computing-Relaxion-Shared-Memory/`
+* from BUCS to Balena: `cp $BUCSHOME/dos/year\ 4/CM30225/Parallel-Computing-Relaxion-Shared-Memory/<file> /home/o/aj645/scratch/cw1-shared-architecture/`
+* from Balena to BUCS: `cp /home/o/aj645/scratch/cw1-shared-architecture/<file> $BUCSHOME/dos/year\ 4/CM30225/Parallel-Computing-Relaxion-Shared-Memory/`
 
 ## TODO
 
