@@ -68,53 +68,49 @@ void* relaxation_runner(void* arg) {
 	}
 		
 	while (is_above_precision) {
-		for (i = 0; i < dim; i++) {
-			for (j = 0; j < dim; j++) {
-				// filter out border values
-				if ( (!((i==0) || (i==dim-1))) && (!((j==0) || (j==dim-1))) ) {
-					
-					// lock and retrieve current value to replace
-					pthread_mutex_lock(&mutex_array[i][j]);
-					float old_value = square_array[i][j];
+		for (i = 1; i < dim - 2; i++) {
+			for (j = 1; j < dim - 2; j++) {
+				// lock and retrieve current value to replace
+				pthread_mutex_lock(&mutex_array[i][j]);
+				float old_value = square_array[i][j];
 
-					// retrieve the 4 surrounding values needed to average
-					float v_left = square_array[i][j-1];
-					float v_right = square_array[i][j+1];
-					float v_up = square_array[i-1][j];
-					float v_down = square_array[i+1][j];
+				// retrieve the 4 surrounding values needed to average
+				float v_left = square_array[i][j-1];
+				float v_right = square_array[i][j+1];
+				float v_up = square_array[i-1][j];
+				float v_down = square_array[i+1][j];
 
-					// calculate new value, replace the old value and unlock
-					float new_value = (v_left + v_right + v_up + v_down) / 4;
-					square_array[i][j] = new_value;
-					pthread_mutex_unlock(&mutex_array[i][j]);
-					updates_counter++;
+				// calculate new value, replace the old value and unlock
+				float new_value = (v_left + v_right + v_up + v_down) / 4;
+				square_array[i][j] = new_value;
+				pthread_mutex_unlock(&mutex_array[i][j]);
+				updates_counter++;
 
-					// check if difference is smaller than precision
-					difference = (float)fabs(old_value - new_value);
-					if (difference < precision) {
-						precision_counter++;
-					} else {
-						precision_counter = 0;	
-					}
-
-					// if difference smaller than precision for all values, stop
-					if (precision_counter >= number_of_values_to_change) {
-						is_above_precision = false;
-						break;
-					}
-
-					pthread_mutex_lock(&mutex_array[i][j]);	
-					// print current iteration data
-					if (DEBUG) {
-						print_relaxation_thread_data(thread_number, 
-							updates_counter, i, j);
-						print_relaxation_values_data(old_value, v_left, v_right, 
-							v_up, v_down, new_value, precision_counter);
-					}
-					pthread_mutex_unlock(&mutex_array[i][j]);
+				// check if difference is smaller than precision
+				difference = (float)fabs(old_value - new_value);
+				if (difference < precision) {
+					precision_counter++;
+				} else { // reset precision counter if diff smaller than prec
+					precision_counter = 0;
 				}
+
+				// if difference smaller than precision for all values, stop
+				if (precision_counter >= number_of_values_to_change) {
+					is_above_precision = false;
+					break;
+				}
+
+				pthread_mutex_lock(&mutex_array[i][j]);	
+				// print current iteration data
+				if (DEBUG) {
+					print_relaxation_thread_data(thread_number, 
+						updates_counter, i, j);
+					print_relaxation_values_data(old_value, v_left, v_right, 
+						v_up, v_down, new_value, precision_counter);
+				}
+				pthread_mutex_unlock(&mutex_array[i][j]);
 			}
-			if (!(is_above_precision)) {
+			if (!(is_above_precision)) { // check at end of current array iter
 				break;
 			}
 		}
