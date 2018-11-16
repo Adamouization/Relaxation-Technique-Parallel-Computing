@@ -168,6 +168,7 @@ int main() {
 	}
 
 	// free allocated array space and successfully exit program
- 	free(square_array);
+ 	free(square_array);	
+	free(mutex_array);
    	return 0;
 }
