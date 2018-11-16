@@ -27,7 +27,7 @@
 /* Global variables */
 bool DEBUG = false;				// print data to the command line
 int dim = 100;					// square array dimensions
-int num_thr = 500;				// number of threads to use
+int num_thr;					// number of threads to use
 float precision = 0.01f;		// precision to perform relaxation at
 float **square_array;			// global square array of floats
 pthread_mutex_t **mutex_array;	// array of mutexes to lock square array values
@@ -126,10 +126,21 @@ void* relaxation_runner(void* arg) {
 /*
  * Program entry.
  */
-int main() {
+int main(int argc, char *argv[]) {
 	// initialise values
 	square_array = initialise_square_array(dim);
 	mutex_array = initialise_mutex_array(dim);
+
+	// retrieve number of threads from command line argument
+	if (argc == 2) {
+		num_thr = atoi(argv[1]);
+	} else if (argc > 2) {
+		printf("Too many arguments provided.\n");
+		exit(EXIT_FAILURE);
+	} else {
+		printf("One argument expected. Number of threads set to 10.\n\n");
+		num_thr = 10;
+	}
 
 	if (DEBUG) print_parameters(dim, num_thr, precision, square_array);
 	
