@@ -37,6 +37,7 @@ float** initialise_square_array(int dim) {
 	for (i = 0; i < dim; i++) {
 		for (j = 0; j < dim; j++) {
 			sq_array[i][j] = (float)(rand() % 100);
+			//sq_array[i][j] = (float)(i*dim+j*j+1);
 		}
 	}
 

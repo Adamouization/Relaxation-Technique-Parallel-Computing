@@ -68,8 +68,8 @@ void* relaxation_runner(void* arg) {
 	}
 		
 	while (is_above_precision) {
-		for (i = 1; i < dim - 2; i++) {
-			for (j = 1; j < dim - 2; j++) {
+		for (i = 1; i < dim - 1; i++) {
+			for (j = 1; j < dim - 1; j++) {
 				// lock and retrieve current value to replace
 				pthread_mutex_lock(&mutex_array[i][j]);
 				float old_value = square_array[i][j];
