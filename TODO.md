@@ -9,7 +9,7 @@
 * [X] Implement relaxation on multiple threads efficiently (sync float array with mutex array to lock individual values)
 * [X] Polish code for batch submission on Balena (print parameters and time at the end).
 * [X] Set number of threads from command line input.
-* [ ] Gather data in an Excel spreadsheet and plot it in a graphs.
+* [X] Gather data in an Excel spreadsheet and plot it in a graphs.
 * [ ] Write report in LaTeX
 
 ## Code design
