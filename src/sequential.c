@@ -14,19 +14,19 @@
 
 // Function definitions
 void initialise_square_array(void);
-void relaxation(float precision);
+void relaxation(double precision);
 void check_malloc(void);
-float double_random(float low, float high);
-void print_initial_data(float precision);
+double double_random(double low, double high);
+void print_initial_data(double precision);
 void print_array(void);
-void print_relaxation_data(float old, float l, float r, float u, float d, float new, int precision);
+void print_relaxation_data(double old, double l, double r, double u, double d, double new, int precision);
 
 
 // Global variables
 bool DEBUG = false;				// print data to the command line
 #define dim 25					// square array dimensions
 struct timeval time1, time2;	// structure used to calculate program time
-float **square_array;			// global square array of floats
+double **square_array;			// global square array of double
 
 
 /*
@@ -34,7 +34,7 @@ float **square_array;			// global square array of floats
  */
 int main() {
 	// initialise values
-	float precision = 0.01f; // precision to perform relaxation at
+	double precision = 0.01f; // precision to perform relaxation at
 	initialise_square_array();
 	print_initial_data(precision);
 
@@ -65,12 +65,12 @@ void initialise_square_array(void) {
 	int i, j;
 	
 	// allocate space for a 1D array of double pointers.
-	square_array = malloc(dim * sizeof(float*));
+	square_array = malloc(dim * sizeof(double*));
 	check_malloc();
 
 	// allocate space for multiple 1D arrays of doubles
 	for (i = 0; i < dim; i++) {
-		square_array[i] = malloc(dim * sizeof(float));
+		square_array[i] = malloc(dim * sizeof(double));
 		check_malloc();
 	}
 
@@ -79,7 +79,7 @@ void initialise_square_array(void) {
 		for (j = 0; j < dim; j++) {
 			//square_array[i][j] = (i*dim) + (j*j*j*j) + 10;
 			//square_array[i][j] = double_random(1.0, 10.0);
-			square_array[i][j] = (float)(rand() % 100);
+			square_array[i][j] = (double)(rand() % 100);
 		}
 	}
 }
@@ -92,11 +92,11 @@ void initialise_square_array(void) {
  * program. Does not update boundary values.
  * Returns a new square array with the updated values.
  */
-void relaxation(float precision) {
+void relaxation(double precision) {
 	bool is_above_precision = true;
 	int precision_counter = 0;
 	int iteration_counter = 0;
-	float difference = 0.0; // different between old and new value
+	double difference = 0.0; // different between old and new value
 	int number_of_values_to_change = ((dim-2) * (dim-2));
 	int i, j;
 
@@ -106,22 +106,22 @@ void relaxation(float precision) {
 		for (i = 1; i < dim - 1; i++) {
 			for (j = 1; j < dim - 1; j++) {
 				// value to replace
-				float old_value = square_array[i][j]; 
+				double old_value = square_array[i][j]; 
 
 				// get 4 surrounding values needed to average
-				float v_left = square_array[i][j-1];
-				float v_right = square_array[i][j+1];
-				float v_up = square_array[i-1][j];
-				float v_down = square_array[i+1][j];
+				double v_left = square_array[i][j-1];
+				double v_right = square_array[i][j+1];
+				double v_up = square_array[i-1][j];
+				double v_down = square_array[i+1][j];
 
 				// perform the calculation
-				float new_value = (v_left + v_right + v_up + v_down) / 4;
+				double new_value = (v_left + v_right + v_up + v_down) / 4;
 				
 				// replace the old value with the new one
 				square_array[i][j] = new_value;
 
 				// check if difference is smaller than precision
-				difference = (float)fabs(old_value - new_value);
+				difference = (double)fabs(old_value - new_value);
 				if (difference < precision) {
 					precision_counter++;
 				} else { // reset precision counter if diff smaller than prec
@@ -163,7 +163,7 @@ void check_malloc(void) {
 /*
  * Prints the initial data values used to initiate the program.
  */
-void print_initial_data(float precision) {
+void print_initial_data(double precision) {
 	printf("Array dimension: %d\n", dim);
 	printf("Precision: %f\n", precision);
 	if (DEBUG) {
@@ -190,7 +190,7 @@ void print_array(void) {
 /*
  * Prints the values used for each iteration of the relaxation technique.
  */
-void print_relaxation_data(float old, float l, float r, float u, float d, float new, int precision) {
+void print_relaxation_data(double old, double l, double r, double u, double d, double new, int precision) {
 	printf("Value to replace: %f\n", old);
 	printf("l: %f, r: %f, u: %f, d: %f\n", l, r, u, d);
 	printf("New value = %f\n", new);

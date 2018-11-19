@@ -18,26 +18,26 @@
  * Initialises a square array by creating an initial array of pointers, each 
  * looking at a 1D arrays of doubles.
  */
-float** initialise_square_array(int dim) {
+double** initialise_square_array(int dim) {
 	long unsigned int dimension = (long unsigned int) dim;
-	float **sq_array;
+	double **sq_array;
 	int i, j;
 
-	// allocate space for a 1D array of float pointers.
-	sq_array = malloc(dimension * sizeof(float*));
-	check_float_malloc(sq_array);
+	// allocate space for a 1D array of double pointers.
+	sq_array = malloc(dimension * sizeof(double*));
+	check_double_malloc(sq_array);
 
 	// allocate space for multiple 1D arrays of doubles
 	for (i = 0; i < dim; i++) {
-		sq_array[i] = malloc(dimension * sizeof(float));
-		check_float_malloc(sq_array);
+		sq_array[i] = malloc(dimension * sizeof(double));
+		check_double_malloc(sq_array);
 	}
 
 	// populate the array with random doubles
 	for (i = 0; i < dim; i++) {
 		for (j = 0; j < dim; j++) {
-			sq_array[i][j] = (float)(rand() % 100);
-			//sq_array[i][j] = (float)(i*dim+j*j+1);
+			sq_array[i][j] = (double)(rand() % 100);
+			//sq_array[i][j] = (double)(i*dim+j*j+1);
 		}
 	}
 
@@ -54,7 +54,7 @@ pthread_mutex_t** initialise_mutex_array(int dim) {
 	pthread_mutex_t** mtx_array;
 	int i, j;
 
-	// allocate space for a 1D array of float mutexes.
+	// allocate space for a 1D array of mutexes.
 	mtx_array = malloc(dimension * sizeof(pthread_mutex_t*));
 	check_mutex_malloc(mtx_array);
 
@@ -80,7 +80,7 @@ pthread_mutex_t** initialise_mutex_array(int dim) {
  * square array of doubles.
  * If not, exit the program with a failure.
  */
-void check_float_malloc(float** square_array) {
+void check_double_malloc(double** square_array) {
 	if (square_array == NULL) {
 		fprintf(stderr, "Failed to allocate space for the array.\n");
 		exit(EXIT_FAILURE);

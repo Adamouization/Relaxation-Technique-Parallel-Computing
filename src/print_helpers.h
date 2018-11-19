@@ -11,12 +11,12 @@
 
 void print_parameters(int dimension, 
 					  int num_thr, 
-					  float precision, 
-					  float** square_array);
+					  double precision, 
+					  double** square_array);
 
 
 void print_array(int dimension, 
-				 float** square_array);
+				 double** square_array);
 
 
 void print_relaxation_thread_data(int tid, 
@@ -25,15 +25,15 @@ void print_relaxation_thread_data(int tid,
 								  int pos_j);
 
 
-void print_relaxation_values_data(float old, 
-						   		  float l, 
-						   		  float r, 
-						   		  float u, 
-						   		  float d, 
-						   		  float new,
+void print_relaxation_values_data(double old, 
+						   		  double l, 
+						   		  double r, 
+						   		  double u, 
+						   		  double d, 
+						   		  double new,
 						   		  int prec_count);
 
 
 void print_final_results(int dimension, 
 						 int num_thr, 
-						 float precision);
+						 double precision);

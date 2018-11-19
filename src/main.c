@@ -28,8 +28,8 @@
 bool DEBUG = false;				// print data to the command line
 int dim = 100;					// square array dimensions
 int num_thr;					// number of threads to use
-float precision = 0.01f;		// precision to perform relaxation at
-float **square_array;			// global square array of floats
+double precision = 0.01f;		// precision to perform relaxation at
+double **square_array;			// global square array of double
 pthread_mutex_t **mutex_array;	// array of mutexes to lock square array values
 struct timeval time1, time2;	// structure used to calculate program time
 struct relaxation_data {		// struct representing input data for a thread
@@ -38,14 +38,14 @@ struct relaxation_data {		// struct representing input data for a thread
 
 
 /*
- * Threaded function that loops loops through the square array of floats to 
+ * Threaded function that loops loops through the square array of double to 
  * replace each value (except boundary values) with an average of its 4
  * neighbouring values (left, right, up and down). Each thread loops until all 
  * the updated values differ by less than the precision specified at the start 
  * of the program. 
  * Each thread exits once it has iterated through the array once and each update
  * differs by less than the precision.
- * Uses an array of mutexes, symmetric to the array of floats, to lock
+ * Uses an array of mutexes, symmetric to the array of double, to lock
  * individual sections of the array so that only one thread updates a value at a
  * time.
  */
@@ -58,7 +58,7 @@ void* relaxation_runner(void* arg) {
 	bool is_above_precision = true;
 	int precision_counter = 0;
 	int updates_counter = 0;
-	float difference = 0.0; // different between old and new value
+	double difference = 0.0; // different between old and new value
 	int number_of_values_to_change = ((dim-2) * (dim-2));
 	int i, j;
 
@@ -72,22 +72,22 @@ void* relaxation_runner(void* arg) {
 			for (j = 1; j < dim - 1; j++) {
 				// lock and retrieve current value to replace
 				pthread_mutex_lock(&mutex_array[i][j]);
-				float old_value = square_array[i][j];
+				double old_value = square_array[i][j];
 
 				// retrieve the 4 surrounding values needed to average
-				float v_left = square_array[i][j-1];
-				float v_right = square_array[i][j+1];
-				float v_up = square_array[i-1][j];
-				float v_down = square_array[i+1][j];
+				double v_left = square_array[i][j-1];
+				double v_right = square_array[i][j+1];
+				double v_up = square_array[i-1][j];
+				double v_down = square_array[i+1][j];
 
 				// calculate new value, replace the old value and unlock
-				float new_value = (v_left + v_right + v_up + v_down) / 4;
+				double new_value = (v_left + v_right + v_up + v_down) / 4;
 				square_array[i][j] = new_value;
 				pthread_mutex_unlock(&mutex_array[i][j]);
 				updates_counter++;
 
 				// check if difference is smaller than precision
-				difference = (float)fabs(old_value - new_value);
+				difference = (double)fabs(old_value - new_value);
 				if (difference < precision) {
 					precision_counter++;
 				} else { // reset precision counter if diff smaller than prec

@@ -15,8 +15,8 @@
 /*
  * Prints the initial data values used to initiate the program.
  */
-void print_parameters(int dimension, int num_thr, float precision, 
-	float** square_array) {
+void print_parameters(int dimension, int num_thr, double precision, 
+	double** square_array) {
 	printf("\nArray dimension: %d\n", dimension);
 	printf("Number of threads: %d\n", num_thr);
 	printf("Precision: %f\n", precision);
@@ -29,7 +29,7 @@ void print_parameters(int dimension, int num_thr, float precision,
 /*
  * Prints an array to the command line.
  */
-void print_array(int dimension, float** square_array) {
+void print_array(int dimension, double** square_array) {
 	int i, j;
 	for (i = 0; i < dimension; i++) {
  		for (j = 0; j < dimension; j++) {
@@ -54,8 +54,8 @@ void print_relaxation_thread_data(int tid, int updates_counter, int i, int j) {
  * Prints the values used to update a value of the square array in a single 
  * iteration.
  */
-void print_relaxation_values_data(float old, float l, float r, float u, float d, 
-	float new, int prec_count) {
+void print_relaxation_values_data(double old, double l, double r, double u, 
+	double d, double new, int prec_count) {
 	printf("Replacing %f with %f (l: %f, r: %f, u: %f, d: %f)\n", old, new, l, 
 		r, u, d);
 	printf("Precision is %d\n\n", prec_count);
@@ -65,7 +65,7 @@ void print_relaxation_values_data(float old, float l, float r, float u, float d,
 /*
  * Prints the parameters used at the end of the script for logging purposes.
  */
-void print_final_results(int dimension, int num_thr, float precision) {
+void print_final_results(int dimension, int num_thr, double precision) {
 	printf("Threads used: %d\n", num_thr);
 	printf("Array dimension: %d\n", dimension);
 	printf("Precision used: %f\n", precision);
