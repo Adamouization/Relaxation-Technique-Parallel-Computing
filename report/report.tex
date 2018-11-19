@@ -38,8 +38,8 @@
 \begin{document}
 
 \title{CM30225 Parallel Computing\\Assessed Coursework Assignment 1}
-\author{\vspace{-5ex}}
-\date{\vspace{-5ex}}
+\author{Adam Jaamour}
+\date{19 November, 2018}
 \maketitle
 
 
@@ -59,14 +59,14 @@ The background is a method called \textit{relaxation technique}, a solution to d
 \subsection{Parallelism}
 \label{sec:implementation_parallelism}
 
-In this program, shared memory parallelism was implemented in C using POSIX threads \cite{posix_threads}. Amongst the multiple approaches to using \textit{pthreads} for parallelism that exist, one favouring efficiency and minimal overhead was chosen. This was achieved by first writing an efficient sequential version of the program, and then scaling it to parallel by using the least \textit{pthread} management possible, such as avoiding the use of barriers and focusing on mutexes to achieve a parallel solution.\\
+In this program, shared memory parallelism was implemented in C using POSIX threads \cite{posix_threads}. Amongst the multiple approaches to using \textit{pthreads} for parallelism that exist, one favouring efficiency and minimal overhead was chosen. This was achieved by first writing an efficient sequential version of the program, and then scaling it to parallel by using the least \textit{pthread} management possible, such as avoiding the use of barriers and focusing on mutexes to achieve a solution in parallel.\\
 
 The solution uses two global arrays that can be accessed by all threads simultaneously: a square array of doubles holding the values to average, and a second array made up of mutexes only. After the threads' creation, each of them starts looping iteratively through the square array of double values. Whenever a thread accesses a value to read and update it, it locks access to that value as well as to its four neighbours that are used to calculate the new average. The locked values are only unlocked once their updated value has been written.\\
 
-The thread locking a value in the array of doubles uses the mutex positioned in the same location in the second array of mutexes to lock the value being updated and its four neighbours. For example, if a thread is accessing the double value located at position $[i=4; j=6]$ in the first array, then it will use the mutex located at the same position in the second array of mutexes to lock the value. See Listing \ref{lst:loop_code} for the implementation in C.\\
+The thread locking a value in the array of doubles uses the mutex positioned in the same location in the second array of mutexes to lock the value being updated (and its four neighbour values). For example, if a thread is accessing the double value located at position $[i=4; j=6]$ in the first array, then it will use the mutex located at the same position in the second array of mutexes to lock the value. See Listing \ref{lst:loop_code} for the implementation in C.\\
 
 \begin{lstlisting}[language=C, caption=Looping through the arrays (main.c), label={lst:loop_code}]
-float **square_array;
+double **square_array;
 pthread_mutex_t **mutex_array;
 
 void* relaxation_runner(void* arg) {
@@ -75,14 +75,14 @@ void* relaxation_runner(void* arg) {
     	for (j = 1; j < dim - 1; j++) {
     		// lock and retrieve current value to replace
     		pthread_mutex_lock(&mutex_array[i][j]);
-    		float old_value = square_array[i][j];
+    		double old_value = square_array[i][j];
     		// retrieve the 4 surrounding values needed to average
-    		float v_left = square_array[i][j-1];
-    		float v_right = square_array[i][j+1];
-    		float v_up = square_array[i-1][j];
-    		float v_down = square_array[i+1][j];
+    		double v_left = square_array[i][j-1];
+    		double v_right = square_array[i][j+1];
+    		double v_up = square_array[i-1][j];
+    		double v_down = square_array[i+1][j];
     		// calculate new value, replace the old value and unlock
-    		float new_value = (v_left + v_right + v_up + v_down) / 4;
+    		double new_value = (v_left + v_right + v_up + v_down) / 4;
     		square_array[i][j] = new_value;
     		pthread_mutex_unlock(&mutex_array[i][j]);
     		// ...
@@ -93,7 +93,7 @@ void* relaxation_runner(void* arg) {
 
 This solution can be pictured as a game of snake \cite{snake_game}, with the first thread representing the snake's head and the last thread representing its tail. The first thread iterates through the array starting at $[i=1; j=1]$, updating the value at this location, before moving on to $[i=1; j=2]$. As the first thread is moving through the array, the second thread and all the others will follow the same path as the first thread once they are scheduled. If they catch up with the first thread, they will have wait for it to unlock the value it is updating before accessing it, like a game of snake where the each body part follows the part in front of it once it moves.\\
 
-This ensures that arrays of any dimension can be solved efficiently at high speeds, both sequentially and in parallel. Indeed, arrays with dimensions of $5000\cdot5000$, equivalent to 25 million values in the array, can be solved in less than 10 minutes on Balena using a precision of $0.01$. See Section \ref{sec:analysis} for more information on the results of this implementation.
+This might cause a lot of overhead for very small array dimensions, but will cause less overhead as the arrays are larger in size. Indeed, arrays with dimensions of $5000\cdot5000$, equivalent to 25 million values in the array, can be solved in less than 10 minutes on Balena using a precision of $0.01$. See Section \ref{sec:analysis} for more information on the results of this implementation.
 
 \subsection{Code}
 
@@ -155,68 +155,68 @@ To ensure that the program was correctly solving the initial array, small parame
 
 A total of 448 jobs were submitted to Balena to gather all the data needed to analyse the program (see Appendix \ref{sec:raw_data}). These jobs were run using the following parameters:
 \begin{itemize}
-    \item Ten different array dimensions, ranging from 5 to 5000, with random values generated between 0 and 100. The array dimensions are organised in two parts: large arrays for dimensions of 500, 1000, 2500, 4500 and 5000, and small arrays for dimensions of 5, 10, 25, 50 and 100.
+    \item Ten different array dimensions, ranging from 5 to 5000, with random double values generated between 0 and 100. The array dimensions are organised in two parts: large arrays for dimensions of 500, 1000, 2500, 4500 and 5000, and small arrays for dimensions of 5, 10, 25, 50 and 100.
     \item Thirty-two different thread configurations, ranging from a single thread to 95.
     \item Two different numbers of core configurations: 16 and 4 cores.
     \item A precision of 0.01.
 \end{itemize}
 
-Plotting the raw output results, which represent the time needed to solve the array in seconds, does not provide much insight into the advantages of running the program in parallel rather than sequentially. Figure \ref{fig:time} tells us that larger arrays take more time to solve than smaller arrays, especially when the number of threads is small (approximately under 10). However, they seem to make the most of a an increasing number of threads, allowing them to be solved faster, whereas small arrays do not gain speed from more threads. Indeed, looking at the raw data in Appendix \ref{sec:raw_data}, very small arrays of sizes 5, 10 and 25 actually slow down as the number of threads used raises.\\
+Plotting the raw output results, which represent the time needed to solve the array in seconds, does not provide much insight into the advantages of running the program in parallel rather than sequentially. Figure \ref{fig:time} tells us that larger arrays take more time to solve than smaller arrays, especially when the number of threads is small (approximately under 10). However, these large arrays seem to make the most of an increasing number of threads, allowing them to be solved faster as the number of threads increases, whereas small arrays do not gain speed from more threads. Indeed, looking at the raw data in Appendix \ref{sec:raw_data}, very small arrays of sizes 5, 10 and 25 actually slow down as the number of threads used rises.\\
 
 \begin{figure}[h]
 \centerline{\includegraphics[width=\textwidth]{report/plots/time.png}}
 \caption{\label{fig:time}Graph depicting the time needed to solve the array in seconds.}
 \end{figure}
 
-Solely analysing the time needed to solve the arrays does not provide enough insights to fully evaluate the gains of running a program in parallel. However, the time needed to solve the arrays in parallel can be directly compared with the time needed to solve the same arrays sequentially. This measure, known as the \textit{speedup}, is calculated as follows: $time_{sequential} / time_{parallel}$.\\
-
-The speedup clearly shows how parallelism affects the program. Figure \ref{fig:speedup_big} illustrates how large arrays ranging from dimensions of 500 to 5000 benefit from speedups of 2.5 to 4.5. Nonetheless, this isn't the most interesting bit of information. The speedup increases in a linear fashion when running from 1 to 16 threads in parallel, but as soon as more than 16 threads are used, the speedup flattens out and eventually starts decreasing.\\
+Solely analysing the time needed to solve the arrays does not provide enough insights to fully evaluate the gains of running a program in parallel. However, the time needed to solve the arrays in parallel can be directly compared with the time needed to solve the same arrays sequentially. This measure, known as the \textit{speedup}, is calculated as follows: $speedup = time_{sequential} / time_{parallel}$. Figure \ref{fig:speedup_big} illustrates how large arrays ranging from dimensions of 500 to 5000 benefit from speedups of 2.5 to 4.5. It is also very important to notice how the speedup increases in a linear fashion when running in parallel with 1 to 16 threads, but that as soon as more than 16 threads are used, the speedup flattens out and eventually starts slowly decreasing.\\
 
 \begin{figure}[h]
 \centerline{\includegraphics[width=\textwidth]{report/plots/speedup_big.png}}
 \caption{\label{fig:speedup_big}Graph depicting the speedup gained for large-dimension arrays.}
 \end{figure}
 
-This decrease that appears after using more than 16 threads is due to the configuration of Balena. According the ``Notes on Balena'' available on the course's webpage \cite{balena_notes}, Balena has: 
+A hypothesis can be made regarding how Balena affects the speeds of the program running in parallel when more than 16 threads are being used. According the ``Notes on Balena'' available on the course's webpage \cite{balena_notes}, Balena has: 
 \begin{displayquote}
 ``170 “standard” nodes of two Intel Xeon E5-2650v2 IvybridgeV2 CPUs, each having 8 cores, thus 16 symmetric shared memory cores on a node, giving us 2720 CPU cores.''
 \end{displayquote} 
-Each job submitted on Balena ran on a single node (see Appendix \ref{sec:slurm}), meaning 16 cores were available to the program every time it ran on the cluster. This explains why the program ran efficiently up until 16 threads with high speedups before starting to decrease in speed, and consequently in speedup, as more threads were used. It is safe to assume that the operating system scheduled the threads such that each one of them fully used a single CPU while the program was running. As more threads than CPUs were created, the overhead of scheduling the threads across the 16 CPUs increased, thus causing the program to slow down considerably.\\
+Each job submitted on Balena ran on a single node (see Appendix \ref{sec:slurm}, line 6), meaning 16 cores were available to the program every time it ran on the cluster. This can be an explanation as to why the program ran efficiently up until 16 threads with high speedups before starting to decrease in speed as more threads were used. It is therefore safe to assume that the hypothesis is true and that the operating system scheduled the threads efficiently when there were no more than 16. A reason for this could be that the OS scheduled each thread so that each thread fully used a single CPU to solve the array. As more threads than CPUs were created, the overhead of scheduling the threads across the 16 CPUs increased, thus causing the program to slow down considerably. This is also a reason as to why the highest speedup occurs when exactly 16 threads are in use.\\
 
-When solving smaller arrays ranging from dimensions of 5 to 100, as represented in Figure \ref{fig:speedup_small}, the speedup is less significant than for larger arrays. As a matter of fact, the speedup is inferior to 1 for arrays under dimensions of 100, meaning that the sequential version of the program is quicker than the parallel one. This is mainly due to the fact that the small array size causes threads to often wait for each other as values are locked by the thread currently updating them (see Section \ref{sec:implementation_parallelism} for more information on the parallel implementation). Threads trying to access the same values occur less often for larger arrays tahn for smaller arrays, explaining the reason why the speedup is much higher for larger arrays (See Figure \ref{fig:speedup_big}) than for smaller arrays (See Figure \ref{fig:speedup_small}).\\
+When solving smaller arrays ranging from dimensions of 5 to 100, as represented in Figure \ref{fig:speedup_small}, the speedup is less significant than for larger arrays. As a matter of fact, the speedup is inferior to 1 for arrays under dimensions of 100, meaning that the sequential version of the program is quicker than the parallel one. This is mainly due to the fact that the small array size causes threads to often wait for each other as values are locked by the thread currently updating them (see Section \ref{sec:implementation_parallelism} for more information on the parallel implementation). Threads trying to access the same values occur less often for larger arrays than for smaller arrays, explaining the reason why the speedup is much higher for larger arrays (See Figure \ref{fig:speedup_big}) than for smaller arrays (See Figure \ref{fig:speedup_small}).\\
 
 \begin{figure}[h]
 \centerline{\includegraphics[width=\textwidth]{report/plots/speedup_small.png}}
 \caption{\label{fig:speedup_small}Graph depicting the speedup gained for small-dimension arrays.}
 \end{figure}
 
-Another more advanced method of analysing the advantages (or disadvantages) of running a program in parallel rather than sequentially is by calculating the \textit{efficiency}. The efficiency can be calculated by using the speedup previously calculated with the number of threads used as follows: $time_{sequential} / (p \cdot time_{parallel})$, where $p$ corresponds to the number of threads used.\\
+Another more detailed method of analysing the advantages (or disadvantages) of running a program in parallel rather than sequentially is by calculating the \textit{efficiency}. The efficiency can be calculated by using the speedup previously calculated with the number of threads used as follows: $efficiency = time_{sequential} / (p \cdot time_{parallel})$, where $p$ corresponds to the number of threads used.\\
 
-Using the efficiency confirms the observations from the speedup. Indeed, the efficiency for large arrays resides around the 20\% to 30\% slice, as seen in Figure \ref{fig:efficiency_big}. The same cutoff as in Figure \ref{fig:speedup_big} can be seen when \textit{number of threads used = 16}, where the efficiency considerably drops for numbers of threads larger than 16, thus reinforcing the assumption made earlier about the 16 cores in a node being only efficiently used when there are 16 threads or less.
+Using the efficiency confirms the observations made from the speedup graphs. Indeed, the efficiency for large arrays resides around the 20\% to 30\% slice, as seen in Figure \ref{fig:efficiency_big}, meaning that approximately less than one third of processors' power is being used for the computation, with the rest being lost in overheads such as communication, printing or idling while waiting for array values to be unlocked. The same cutoff as in Figure \ref{fig:speedup_big} can be seen when \textit{number of threads used = 16}, where the efficiency considerably drops more than 16 threads are used, thus reinforcing the hypothesis made earlier about the 16 cores in a node being only efficiently used when there are 16 threads or less.\\
 
 \begin{figure}[h]
 \centerline{\includegraphics[width=\textwidth]{report/plots/efficiency_big.png}}
 \caption{\label{fig:efficiency_big}Graph depicting the efficiency of running in parallel for large-dimension arrays.}
 \end{figure}
 
-Similarly to the speedup for smaller arrays, the efficiency is less important than for larger arrays as it quickly converges towards 0.0\% as more threads are used. Figure \ref{fig:efficiency_small} clearly portrays how inefficient parallelism is for small sized-problems as the program is most efficient when running on a single thread only. Running on 4 threads already makes the program three times less efficient than running on one thread.\\
+Similarly to the speedup for smaller arrays, the efficiency is less important for small arrays than it is for large arrays as the efficiency quickly converges towards 0.001\% as more threads are used. Figure \ref{fig:efficiency_small} clearly portrays how inefficient parallelism is for small sized-problems as the program is the most efficient when running on a single thread. Running on four threads already makes the program three times less efficient than running on one thread.\\
 
 \begin{figure}[h]
 \centerline{\includegraphics[width=\textwidth]{report/plots/efficiency_small.png}}
 \caption{\label{fig:efficiency_small}Graph depicting the efficiency of running in parallel for small-dimension arrays.}
 \end{figure}
 
-The analysis of the time, speedup and efficiency of running a program in parallel provided useful information regarding the scalability. Indeed, on the one hand, it is obvious that parallel programs scale well for large problems, whereas on the other hand this kind of solution does not suit small problems.\\
-
-It is important to note that during the data gathering phase attempts were made to run the program on Balena using 4 cores instead of 16. This was done by changing a line in the SLURM script to \textit{\#SBATCH --ntasks-per-node=4}. The same test parameters were used for arrays of dimensions 100, 1000 and 2500. However, the resulting data was near identical to the data produced when running on 16 cores. 
+It is important to note that during the data gathering phase, jobs using 4 cores instead of 16 were submitted to Balena. This was done by changing a line in the SLURM script from ``\textit{\#SBATCH --ntasks-per-node=16}'' to ``\textit{\#SBATCH --ntasks-per-node=4}''. The same test parameters were used for arrays of dimensions 100, 1000 and 2500, running on 1 to 95 threads with a precision of 0.01. However, the resulting data was near identical to the data produced when running on 16 cores, probably indicating that the jobs were not submitted correctly to run on 4 cores. Therefore, the results were not provided in this report as they too similar to the ones produced when running on 16 cores and would not provided any additional information.\\
 
 
 % ------------------------------------------ 4 - CONCLUSION ------------------------------------------ 
 
 \section{Conclusions}
-There are many different ways of implementing parallelism 
-waiting is killing parallelism
-many possible solutions, favoured one for large arrays due to little collisions between the threads
+There are many different ways of implementing parallelism in a program in a shared memory architecture. The analysis of the time, speedup and efficiency of running a program in parallel provided useful information regarding the scalability of such programs. Indeed, on the one hand, it is obvious that parallel programs scale well for large problems, whereas on the other hand this kind of solution does not suit small problems. \\
+
+Another important point is that too much parallelism slows down the program considerably. All of the graphs in this report show that as more threads were used, the execution time rose and the speedup and efficiency diminished. Using too many parallel functions or constructs would have slowed down the program even more. For instance, if barriers were used to sync the threads between each other, an important amount of overhead would have been added in idling alone while the threads joined each other. Waiting threads are the main reason why some parallel implementations of program show poor performance.\\
+
+With this particular implementation of parallelism, the number of CPUs available affected the number of threads that could be used efficiently. Another solution to solve this assignment with parallelism could have been to assign each thread specific locations of the array of values to solve, in which case the number of cores would have less affected the execution speed.\\
+
+In conclusion, parallelism in code exists in multiple forms and will work more efficiently in different conditions for different problem sizes, there is no single solution to parallelism.
 
 
 % ------------------------------------------ BIBLIOGRAPHY ------------------------------------------ 
