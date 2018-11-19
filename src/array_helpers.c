@@ -4,7 +4,7 @@
  * 
  * Source file for functions used to manipulate arrays.
  * 
- * Author: aj645
+ * Author: Adam Jaamour
  * Date: 19-Nov-2018
  */
  

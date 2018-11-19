@@ -1,8 +1,9 @@
 /**
  * SEQUENTIAL VERSION
- * author: aj645
+ * author: Adam Jaamour
  *
  * gcc sequential.c -o sequential -Wall -Wextra -Wconversion"
+ * ./sequential
  */
 
 #include <stdio.h>

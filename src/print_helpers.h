@@ -4,7 +4,7 @@
  * 
  * Header file for functions used to print data on the command line.
  * 
- * Author: aj645
+ * Author: Adam Jaamour
  * Date: 19-Nov-2018
  */
  

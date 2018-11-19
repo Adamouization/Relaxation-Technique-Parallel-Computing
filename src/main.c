@@ -6,12 +6,12 @@
  * architecture using pthreads
  *
  * Local usage: 
- * 1) "gcc main.c array_helpers.c print_helpers.c -o main.exe -pthread -Wall 
+ * 1) "gcc main.c array_helpers.c print_helpers.c -o relaxation -pthread -Wall 
  *     -Wextra -Wconversion"
- * 2) "./main.exe"
+ * 2) "./relaxation <number_of_threads>"
  * 
- * Author: aj645
- * Date: 19-Nov-2018make
+ * Author: Adam Jaamour
+ * Date: 19-Nov-2018
  */
 
 #include <stdio.h>
