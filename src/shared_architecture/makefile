@@ -2,7 +2,7 @@ CC			= gcc
 CFLAGS		= -Wall -Wextra -Wconversion
 LDFLAGS		= -pthread
 OBJFILES	= main.o array_helpers.o print_helpers.o
-TARGET		= relaxation
+TARGET		= shared_relaxation
 
 all: $(TARGET)
 

@@ -30,7 +30,8 @@
 
 # Executables
 main
-relaxation
+shared_relaxation
+distributed_relaxation
 sequential
 *.exe
 *.out

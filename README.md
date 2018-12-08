@@ -14,9 +14,9 @@ You can read the final report [here](https://github.com/Adamouization/Parallel-C
 
 ### On a local machine using GCC
 
-* Compile using `make` or `gcc main.c array_helpers.c print_helpers.c -o relaxation -pthread -Wall -Wextra -Wconversion`
+* Compile using `make` or `gcc main.c array_helpers.c print_helpers.c -o shared_relaxation -pthread -Wall -Wextra -Wconversion`
 
-* Run: `./relaxation <number_of_threads>`
+* Run: `./shared_relaxation <number_of_threads>`
 
 * Clean output files: `make clean`
 
