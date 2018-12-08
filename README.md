@@ -2,7 +2,7 @@
 
 ## Problem Description
 
-The objective of this assignment is to use low-level primitive parallelism constructs on a shared memory architecture and analyse how parallel problems scale on such an architectures using C and pthreads on Balena, a mid-sized cluster with 2720 cpu cores.
+The objective of this assignment is to use low-level primitive parallelism constructs, first on a shared memory architecture then on a distributed memory architecture, and analyse how parallel problems scale on such an architectures using C, pthreads and MPI on Balena, a mid-sized cluster with 2720 cpu cores.
 
 The background is a method called relaxation technique, a solution to differential equations, which is achieved by having a square array of values and repeatedly replacing a value with the average of its four neighbours, excepting boundaries values which remain fixed. This process is repeated until all values settle down to within a given precision.
 
