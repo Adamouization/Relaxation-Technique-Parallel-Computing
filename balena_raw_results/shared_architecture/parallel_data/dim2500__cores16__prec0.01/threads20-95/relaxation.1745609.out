@@ -1,0 +1,18 @@
+Array dimension: 2500
+Threads used: 35
+Precision used: 0.010000
+Total time = 9.787906 seconds
+
+########################################################################
+----------------------! Balena Job Details !----------------------------
+
+JobID          : 1745609
+No. of nodes   : 1
+No. of CPUs    : 16
+Timelimit      : 00:10:00
+Elapsed time   : 00:00:11
+Nodelist       : node-sw-164
+Energy Used    : 1628.00 Joules
+
+########################################################################
+

@@ -1,0 +1,15 @@
+slurmstepd: error: *** JOB 1742334 ON node-sw-161 CANCELLED AT 2018-11-16T16:02:08 DUE TO TIME LIMIT ***
+
+########################################################################
+----------------------! Balena Job Details !----------------------------
+
+JobID          : 1742334
+No. of nodes   : 1
+No. of CPUs    : 16
+Timelimit      : 00:10:00
+Elapsed time   : 00:10:18
+Nodelist       : node-sw-161
+Energy Used    : 59575.20 Joules
+
+########################################################################
+
