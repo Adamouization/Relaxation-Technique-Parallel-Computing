@@ -127,25 +127,21 @@ int main() {
 	// papa process
 	if (world_rank == 0) {
 		double **square_array = initialise_square_array(dimension);
-		print_array(dimension, square_array);
+		//print_array(dimension, square_array);
 		
 		double** chunk1 = select_chunk(dimension, square_array, 0, 3);
-		/*printf("\n");
-		print_non_square_array(dimension, 4, chunk1);*/
+		//printf("\n");
+		//print_non_square_array(dimension, 4, chunk1);
 		
-		
-
-		// allocate space for multiple 1D arrays of doubles
+		// send data to 
 		int i;
 		MPI_Send(&dimension, 1, MPI_INT, 1, 99, MPI_COMM_WORLD);
 		for (i = 0; i < 4; i++)
 		{
-			MPI_Send(chunk1[i], dimension, MPI_DOUBLE, 1, 99, MPI_COMM_WORLD);
+			int n_to_pass=(dimension+1)*(i+1)-2;
+			MPI_Send(&chunk1[n_to_pass], dimension, MPI_DOUBLE, 1, 99, MPI_COMM_WORLD);
 		}
-		
-		
-		
-		
+
 		/*
 		double** chunk2 = select_chunk(dimension, square_array, 2, 5);
 		MPI_send(chunk2, 1, MPI_DOUBLE, 2, 0, MPI_COMM_WORLD);
@@ -155,35 +151,33 @@ int main() {
 		*/
 	}
 	
-	// children process
+	// children processes
 	else if (world_rank == 1){ // do rows 1 and 2
-		//MPI_Recv(&my_chunk1, 28, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		double** my_chunk1 = malloc(28 * sizeof(double));
+		
 		int my_dimension;
+		
 		MPI_Recv(&my_dimension, 1, MPI_INT, 0, 99, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		printf("cazzo00000\n");
-		int i;
+		double *my_chunk1 = malloc(my_dimension * sizeof(double));
+		
+		int i, j;
 		for (i = 0; i < 4; i++)
 		{
-			MPI_Recv(&my_chunk1[i], dimension, MPI_DOUBLE, 0, 99, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-			printf("cazzo\n");
+			MPI_Recv(&my_chunk1[0], dimension, MPI_DOUBLE, 0, 99, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			for (j = 0; j < my_dimension; j++)
+			{
+				printf("%f ", my_chunk1[j]);
+			}
+			printf("\n");
 		}
-		
-		
-		
 		printf("Hello world from processor #%d out of %d processors\n", world_rank, world_size);
-		//MPI_Recv(&my_chunk1, 28, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		printf("\n");
-		//print_non_square_array(dimension, 4, chunk1);
 	}
 	
-	else if (world_rank == 2){
-		// do rows 3 and 4
+	else if (world_rank == 2){ // do rows 3 and 4
 		printf("Hello world from processor #%d out of %d processors\n", world_rank, world_size);
 	}
 	
-	else if (world_rank == 3){
-		// do rows 5
+	else if (world_rank == 3){ // do rows 5 only
 		printf("Hello world from processor #%d out of %d processors\n", world_rank, world_size);
 	}
 	
