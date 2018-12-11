@@ -76,7 +76,7 @@ int get_range_from_p_num_end(int dimension, int number_of_processes, int process
 /*
  * Program entry.
  */
-int main() {
+int main(int argc, char** argv) {
 	int dimension = 7;
 	int entire_dimension;
 	//double precision = 0.01f;
@@ -93,6 +93,13 @@ int main() {
 	// Get the number of processes and the rank of the process
     MPI_Comm_size(MPI_COMM_WORLD, &world_size); 
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+	
+	
+	// Kill program if less than 2 processes
+	if (world_size < 2) {
+		fprintf(stderr, "World size must be greater than 2 for %s\n", argv[0]);
+		MPI_Abort(MPI_COMM_WORLD, rc);
+	}
 	
 	// Root process
 	if (world_rank == 0) {
