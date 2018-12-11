@@ -32,6 +32,6 @@
 
 * [X] Implement basic MPI code
 * [X] Fix warnings
-* [ ] Move helper code into separate source files
+* [X] Move helper code into separate source files
 * [ ] Replace duplicate hard-coded code with loops
 * [ ] Implement relaxation in child processes

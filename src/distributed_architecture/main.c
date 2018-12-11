@@ -171,7 +171,7 @@ int main(int argc, char** argv) {
 		int i, j;
 		for (i = 0; i < 4; i++) {
 			for (j = 0; j < num_elements_to_recv/4; j++) {
-				child_sub_arr[i*(num_elements_to_recv/4)+j] = child_sub_arr[i*(num_elements_to_recv/4)+j] + 10;
+				child_sub_arr[i* (num_elements_to_recv/4) + j] = child_sub_arr[i * (num_elements_to_recv/4) + j] + 10;
 			}
 		}
 		
@@ -194,7 +194,7 @@ int main(int argc, char** argv) {
 		int i, j;
 		for (i = 0; i < 4; i++) {
 			for (j = 0; j < num_elements_to_recv/4; j++) {
-				child_sub_arr[i*(num_elements_to_recv/4)+j] = child_sub_arr[i*(num_elements_to_recv/4)+j] + 10;
+				child_sub_arr[i * (num_elements_to_recv/4) + j] = child_sub_arr[i * (num_elements_to_recv/4) + j] + 10;
 			}
 		}
 		
@@ -217,7 +217,7 @@ int main(int argc, char** argv) {
 		int i, j;
 		for (i = 0; i < 3; i++) {
 			for (j = 0; j < num_elements_to_recv/3; j++) {
-				child_sub_arr[i*(num_elements_to_recv/3)+j] = child_sub_arr[i*(num_elements_to_recv/3)+j] + 10;
+				child_sub_arr[i * (num_elements_to_recv/3) + j] = child_sub_arr[i * (num_elements_to_recv/3) + j] + 10;
 			}
 		}
 		
