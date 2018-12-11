@@ -6,7 +6,7 @@
  * architecture using MPI (Message Passing Interface)
  *
  * Local usage: 
- * 1) "mpicc main.c -o distributed_relaxation"
+ * 1) "mpicc -Wall -Wextra -Wconversion main.c -o distributed_relaxation -lm"
  * 2) "mpirun -np <number_of_processes> ./distributed_relaxation"
  * 
  * Author: Adam Jaamour
