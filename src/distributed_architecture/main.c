@@ -30,6 +30,10 @@
 #include <mpi.h>
 #include "array_helpers.h"
 #include "print_helpers.h"
+
+#define send_tag 1
+#define recv_tag 2
+
 int DEBUG = false;
 
 
@@ -113,35 +117,35 @@ int main(int argc, char** argv) {
 		// send data to child process #1
 		double* chunk1 = select_chunk(dimension, square_array, 0, 3);
 		entire_dimension=dimension*4;
-		MPI_Send(&entire_dimension, 1, MPI_INT, 1, 99, MPI_COMM_WORLD);
-		MPI_Send(chunk1, entire_dimension, MPI_DOUBLE, 1, 99, MPI_COMM_WORLD);
+		MPI_Send(&entire_dimension, 1, MPI_INT, 1, send_tag, MPI_COMM_WORLD);
+		MPI_Send(chunk1, entire_dimension, MPI_DOUBLE, 1, send_tag, MPI_COMM_WORLD);
 		
 		// send data to child process #2
 		chunk1 = select_chunk(dimension, square_array, 2, 5);
 		entire_dimension=dimension*4;
-		MPI_Send(&entire_dimension, 1, MPI_INT, 2, 99, MPI_COMM_WORLD);
-		MPI_Send(chunk1, entire_dimension, MPI_DOUBLE, 2, 99, MPI_COMM_WORLD);
+		MPI_Send(&entire_dimension, 1, MPI_INT, 2, send_tag, MPI_COMM_WORLD);
+		MPI_Send(chunk1, entire_dimension, MPI_DOUBLE, 2, send_tag, MPI_COMM_WORLD);
 
 		// send data to child process #3
 		chunk1 = select_chunk(dimension, square_array, 4, 6);
 		entire_dimension=dimension*3;
-		MPI_Send(&entire_dimension, 1, MPI_INT, 3, 99, MPI_COMM_WORLD);
-		MPI_Send(chunk1, entire_dimension, MPI_DOUBLE, 3, 99, MPI_COMM_WORLD);
+		MPI_Send(&entire_dimension, 1, MPI_INT, 3, send_tag, MPI_COMM_WORLD);
+		MPI_Send(chunk1, entire_dimension, MPI_DOUBLE, 3, send_tag, MPI_COMM_WORLD);
 		
 		// receive updated chunks from process #1 and place them back in square array
-		MPI_Recv(chunk1, dimension*4, MPI_DOUBLE, 1, 66, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		MPI_Recv(chunk1, dimension*4, MPI_DOUBLE, 1, recv_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		start=get_range_from_p_num_start(dimension-2, world_size-1, 1);
 		end=get_range_from_p_num_end(dimension-2, world_size-1, 1);
 		square_array = stitch_array(square_array, chunk1, start, end, dimension);
 		
 		// receive updated chunks from process #2 and place them back in square array
-		MPI_Recv(chunk1, dimension*4, MPI_DOUBLE, 2, 66, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		MPI_Recv(chunk1, dimension*4, MPI_DOUBLE, 2, recv_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		start=get_range_from_p_num_start(dimension-2, world_size-1, 2);
 		end=get_range_from_p_num_end(dimension-2, world_size-1, 2);
 		square_array = stitch_array(square_array, chunk1, start, end, dimension);
 		
 		// receive updated chunks from process #3 and place them back in square array
-		MPI_Recv(chunk1, dimension*3, MPI_DOUBLE, 3, 66, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		MPI_Recv(chunk1, dimension*3, MPI_DOUBLE, 3, recv_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		start=get_range_from_p_num_start(dimension-2, world_size-1, 3);
 		end=get_range_from_p_num_end(dimension-2, world_size-1, 3);
 		square_array = stitch_array(square_array, chunk1, start, end, dimension);
@@ -153,9 +157,9 @@ int main(int argc, char** argv) {
 	// child process #1 (do rows 1 and 2)
 	else if (world_rank == 1){
 		int my_dimension;
-		MPI_Recv(&my_dimension, 1, MPI_INT, 0, 99, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		MPI_Recv(&my_dimension, 1, MPI_INT, 0, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		double *my_chunk1 = malloc((long unsigned int)my_dimension * sizeof(double));
-		MPI_Recv(my_chunk1, my_dimension, MPI_DOUBLE, 0, 99, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		MPI_Recv(my_chunk1, my_dimension, MPI_DOUBLE, 0, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		
 		if (DEBUG) {
 			print_non_square_array(7, 4, my_chunk1);
@@ -170,15 +174,15 @@ int main(int argc, char** argv) {
 			}
 		}
 		// send chunk back to root process
-		MPI_Send(my_chunk1, my_dimension, MPI_DOUBLE, 0, 66, MPI_COMM_WORLD);
+		MPI_Send(my_chunk1, my_dimension, MPI_DOUBLE, 0, recv_tag, MPI_COMM_WORLD);
 	}
 	
 	// child process #2 do rows 3 and 4
 	else if (world_rank == 2){
 		int my_dimension;
-		MPI_Recv(&my_dimension, 1, MPI_INT, 0, 99, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		MPI_Recv(&my_dimension, 1, MPI_INT, 0, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		double *my_chunk1 = malloc((long unsigned int)my_dimension * sizeof(double));
-		MPI_Recv(my_chunk1, my_dimension, MPI_DOUBLE, 0, 99, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		MPI_Recv(my_chunk1, my_dimension, MPI_DOUBLE, 0, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		
 		if (DEBUG) {
 			print_non_square_array(7, 4, my_chunk1);
@@ -193,15 +197,15 @@ int main(int argc, char** argv) {
 			}
 		}
 		// send chunk back to root process
-		MPI_Send(my_chunk1, my_dimension, MPI_DOUBLE, 0, 66, MPI_COMM_WORLD);
+		MPI_Send(my_chunk1, my_dimension, MPI_DOUBLE, 0, recv_tag, MPI_COMM_WORLD);
 	}
 	
 	// child process #3 do row 5 only
 	else if (world_rank == 3){
 		int my_dimension;
-		MPI_Recv(&my_dimension, 1, MPI_INT, 0, 99, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		MPI_Recv(&my_dimension, 1, MPI_INT, 0, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		double *my_chunk1 = malloc((long unsigned int)my_dimension * sizeof(double));
-		MPI_Recv(my_chunk1, my_dimension, MPI_DOUBLE, 0, 99, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		MPI_Recv(my_chunk1, my_dimension, MPI_DOUBLE, 0, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		
 		if (DEBUG) {
 			print_non_square_array(7, 3, my_chunk1);
@@ -216,7 +220,7 @@ int main(int argc, char** argv) {
 			}
 		}
 		// send chunk back to root process
-		MPI_Send(my_chunk1, my_dimension, MPI_DOUBLE, 0, 66, MPI_COMM_WORLD);
+		MPI_Send(my_chunk1, my_dimension, MPI_DOUBLE, 0, recv_tag, MPI_COMM_WORLD);
 	}
 	
 	// Clean up the MPI environment.
