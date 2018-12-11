@@ -30,4 +30,6 @@
 
 ## Distributed Memory Architecture (MPI)
 
-* [ ] Implement basic MPI code
+* [X] Implement basic MPI code
+* [ ] Replace duplicate hard-coded code with loops
+* [ ] Implement relaxation in child processes

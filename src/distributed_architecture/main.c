@@ -61,7 +61,7 @@ double* create_new_array(int dim_x, int dim_y) {
 	long unsigned int dimension_x = (long unsigned int) dim_x;
 	long unsigned int dimension_y = (long unsigned int) dim_y;
 	double *arr;
-
+ 
 	// allocate space for a 1D array of double pointers.
 	arr = malloc(dimension_x * dimension_y * sizeof(double));
 	check_double_malloc(arr);
