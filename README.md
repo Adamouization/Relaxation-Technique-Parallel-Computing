@@ -1,4 +1,4 @@
-# Parallel Computing Relaxation Technique in a Shared Memory Architecture
+# Relaxation Technique Parallelised using Pthreads and MPI
 
 ## Problem Description
 
@@ -10,15 +10,17 @@ The background is a method called relaxation technique, a solution to differenti
 
 ### Shared Memory Architecture (pthreads)
 
-#### On a local machine using GCC
-
-* Compile using `make` or `gcc main.c array_helpers.c print_helpers.c -o shared_relaxation -pthread -Wall -Wextra -Wconversion`
-
+* Compile using gcc: `make` or `gcc main.c array_helpers.c print_helpers.c -o shared_relaxation -pthread -Wall -Wextra -Wconversion`
 * Run: `./shared_relaxation <number_of_threads>`
 
-* Clean output files: `make clean`
+### Distributed Memory Architecture (MPI)
 
-#### On the Balena cluster using SLURM
+* Compile using mpicc: `mpicc main.c -o distributed_relaxation -lm`
+* Run: `mpirun -np <number_of_processes> ./distributed_relaxation`
+
+### Other
+
+#### Running the shared memory architecture on the Balena cluster using SLURM
 
 * SSH into Balena: `ssh [user_name]@balena.bath.ac.uk`
 * `cd` into the project directory and submit the SLURM job script [`job.slurm`](https://github.com/Adamouization/Parallel-Computing-Relaxion-Shared-Memory/blob/master/job.slurm) to the queue: `sbatch jobscript.slurm`
@@ -30,13 +32,6 @@ The background is a method called relaxation technique, a solution to differenti
 * `./submit_multiple_batch 1`
 * `cat *.out`
 * Use following regex to retrieve time by using this regex `\=.(\d+)\..(\d+)` and pasting the output in [regex101](https://regex101.com/)
-
-### Distributed Memory Architecture (MPI)
-
-* Compile using mpicc: `mpicc main.c -o distributed_relaxation -lm`
-* Run the mpi program: `mpirun -np <number_of_processes> ./distributed_relaxation`
-
-### Other
 
 #### Copying files to/from Balena
 
