@@ -28,74 +28,14 @@
 #include <math.h>
 #include <stdbool.h>
 #include <mpi.h>
+#include "array_helpers.h"
+#include "print_helpers.h"
 int DEBUG = false;
 
 
-void check_double_malloc(double* square_array) {
-	if (square_array == NULL) {
-		fprintf(stderr, "Failed to allocate space for the array.\n");
-		exit(EXIT_FAILURE);
-	}
-}
-
-
-double* initialise_square_array(int dim) {
-	long unsigned int dimension = (long unsigned int) dim;
-	double *sq_array;
-	int i, j;
-
-	// allocate space for a 1D array of double pointers.
-	sq_array = malloc(dimension * dimension * sizeof(double));
-	check_double_malloc(sq_array);
-
-
-	// populate the array with random doubles
-	for (i = 0; i < dim; i++) {
-		for (j = 0; j < dim; j++) {
-			sq_array[i*dim+j] = (double)(rand() % 100);
-			//sq_array[i][j] = (double)(i*dim+j*j+1);
-		}
-	}
-
-	return sq_array;
-}
-
-
-double* create_new_array(int dim_x, int dim_y) {
-	long unsigned int dimension_x = (long unsigned int) dim_x;
-	long unsigned int dimension_y = (long unsigned int) dim_y;
-	double *arr;
- 
-	// allocate space for a 1D array of double pointers.
-	arr = malloc(dimension_x * dimension_y * sizeof(double));
-	check_double_malloc(arr);
-	
-	return arr;
-}
-
-
-void print_array(int dimension, double* square_array) {
-	int i, j;
-	for (i = 0; i < dimension; i++) {
- 		for (j = 0; j < dimension; j++) {
- 			printf("%f ", square_array[i*dimension+j]);
- 		}
- 		printf("\n");
- 	}
-}
-
-
-void print_non_square_array(int y, int x, double* square_array) {
-	int i, j;
-	for (i = 0; i < y; i++) {
- 		for (j = 0; j < x; j++) {
- 			printf("%f ", square_array[i*x+j]);
- 		}
- 		printf("\n");
- 	}
-}
-
-
+/*
+ * 
+ */
 int get_range_from_p_num_start(int dimension, int number_of_processes, int process_rank) {
 	float div = (float)dimension / (float)number_of_processes;
 	int chunk_height = (int)ceil(div);
@@ -110,6 +50,9 @@ int get_range_from_p_num_start(int dimension, int number_of_processes, int proce
 }
 
 
+/*
+ * 
+ */
 int get_range_from_p_num_end(int dimension, int number_of_processes, int process_rank) {
 	float div= (float)dimension / (float)number_of_processes;
 	int chunk_height = (int)ceil(div);
@@ -130,35 +73,9 @@ int get_range_from_p_num_end(int dimension, int number_of_processes, int process
 }
 
 
-double* stitch_array(double* sq_array, double* chunk_array, int start, int end, int dimension){
-	int i, j;
-	for (i = start+1; i < end; i++) {
-		//printf("i: %d \n",i);
-		for (j = 1; j < dimension - 1; j++) {
-			sq_array[i*dimension+j] = chunk_array[(i-start)*dimension+j];
-			//printf("%d ",j);
-		}
-		//printf("\n");
-	}
-	return sq_array;
-}
-
-
-double* select_chunk(int dimension, double* square_array, int start_row, int end_row) {
-	int difference = end_row - start_row + 1;
-	double* chunk_array = create_new_array(difference,dimension);
-	int i, j;
-	for (i = start_row; i < difference+start_row; i++) {
-		for (j = 0; j < dimension; j++) {
-			chunk_array[(i-start_row)*(dimension)+j] = square_array[i*(dimension)+j];
-			//printf("%f ", chunk_array[(i-start_row)*(dimension)+j]);
-		}
- 		//printf("\n");
-	}
-	return chunk_array;
-}
-
-
+/*
+ * Program entry.
+ */
 int main() {
 	int dimension = 7;
 	int entire_dimension;
@@ -173,15 +90,16 @@ int main() {
 		MPI_Abort(MPI_COMM_WORLD, rc);
 	}
 	
-    MPI_Comm_size(MPI_COMM_WORLD, &world_size); // Get the number of processes
-    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank); // Get the rank of the process
+	// Get the number of processes and the rank of the process
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size); 
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 	
 	// Root process
 	if (world_rank == 0) {
 		double *square_array = initialise_square_array(dimension);
 		
 		if (true) {
-			print_array(dimension, square_array);
+			print_square_array(dimension, square_array);
 			printf("\n");
 		}
 		
@@ -222,7 +140,7 @@ int main() {
 		square_array = stitch_array(square_array, chunk1, start, end, dimension);
 		
 		// finish and print final array
-		print_array(dimension, square_array);
+		print_square_array(dimension, square_array);
 	}
 	
 	// child process #1 (do rows 1 and 2)
@@ -233,7 +151,7 @@ int main() {
 		MPI_Recv(my_chunk1, my_dimension, MPI_DOUBLE, 0, 99, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		
 		if (DEBUG) {
-			print_non_square_array(4,7,my_chunk1);
+			print_non_square_array(7, 4, my_chunk1);
 			printf("Hello world from processor #%d out of %d processors\n", world_rank, world_size);
 		}
 		
@@ -256,7 +174,7 @@ int main() {
 		MPI_Recv(my_chunk1, my_dimension, MPI_DOUBLE, 0, 99, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		
 		if (DEBUG) {
-			print_non_square_array(4,7,my_chunk1);
+			print_non_square_array(7, 4, my_chunk1);
 			printf("Hello world from processor #%d out of %d processors\n", world_rank, world_size);
 		}
 		
@@ -279,7 +197,7 @@ int main() {
 		MPI_Recv(my_chunk1, my_dimension, MPI_DOUBLE, 0, 99, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		
 		if (DEBUG) {
-			print_non_square_array(3,7,my_chunk1);
+			print_non_square_array(7, 3, my_chunk1);
 			printf("Hello world from processor #%d out of %d processors\n", world_rank, world_size);
 		}
 		

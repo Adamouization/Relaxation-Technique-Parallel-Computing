@@ -1,7 +1,7 @@
 CC			= mpicc
 CFLAGS		= -Wall -Wextra -Wconversion
 LDFLAGS		= -lm
-OBJFILES	= main.o
+OBJFILES	= main.o array_helpers.o print_helpers.o
 TARGET		= distributed_relaxation
 
 all: $(TARGET)
