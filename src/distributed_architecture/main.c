@@ -126,6 +126,21 @@ int get_range_from_p_num_end(int dimension, int number_of_processes, int process
 }
 
 
+double* stitch_array(double* sq_array, double* chunk_array, int start, int end, int dimension){
+	int i, j;
+	for (i = start+1; i < end; i++) {
+		
+		//printf("i: %d \n",i);
+		for (j = 1; j < dimension - 1; j++) {
+			sq_array[i*dimension+j] = chunk_array[(i-start)*dimension+j];
+			//printf("%d ",j);
+		}
+		//printf("\n");
+	}
+	return sq_array;
+}
+
+
 double* select_chunk(int dimension, double* square_array, int start_row, int end_row) {
 	int difference = end_row - start_row + 1;
 	double* chunk_array = create_new_array(difference,dimension);
@@ -159,23 +174,12 @@ int main() {
     MPI_Comm_size(MPI_COMM_WORLD, &world_size); // Get the number of processes
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank); // Get the rank of the process
 	
-	
-	/*int st=get_range_from_p_num_start(dimension-2, world_rank, 1);
-	int en=get_range_from_p_num_end(dimension-2, world_rank, 1);
-	printf("myArray[0]: %d \n",st);
-	printf("myArray[1]: %d \n",en);*/
-	
 	// papa process
 	if (world_rank == 0) {
-		
-		int st=get_range_from_p_num_start(dimension-2, world_size-1, 3);
-		int en=get_range_from_p_num_end(dimension-2, world_size-1, 3);
-		printf("myArray[0]: %d \n",st);
-		printf("myArray[1]: %d \n",en);
-		
-		
 		double *square_array = initialise_square_array(dimension);
-		//print_array(dimension, square_array);
+		print_array(dimension, square_array);
+		printf("\n");
+		printf("\n");
 		
 		// send data to child process #1
 		double* chunk1 = select_chunk(dimension, square_array, 0, 3);
@@ -196,23 +200,31 @@ int main() {
 		MPI_Send(&entire_dimension, 1, MPI_INT, 3, 99, MPI_COMM_WORLD);
 		MPI_Send(chunk1, entire_dimension, MPI_DOUBLE, 3, 99, MPI_COMM_WORLD);
 		
-		
 		// receive updated chunks from process #1
 		MPI_Recv(chunk1, dimension*4, MPI_DOUBLE, 1, 66, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		//print_non_square_array(4, 7, chunk1);
+		// place them back in square array
+		int start=get_range_from_p_num_start(dimension-2, world_size-1, 1);
+		int end=get_range_from_p_num_end(dimension-2, world_size-1, 1);
+		printf("start: %d \n",start);
+		printf("end: %d \n",end);
+		square_array = stitch_array(square_array, chunk1, start, end, dimension);
 		
 		// receive updated chunks from process #2
 		MPI_Recv(chunk1, dimension*4, MPI_DOUBLE, 2, 66, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		//print_non_square_array(4, 7, chunk1);
+		// place them back in square array
+		start=get_range_from_p_num_start(dimension-2, world_size-1, 2);
+		end=get_range_from_p_num_end(dimension-2, world_size-1, 2);
+		square_array = stitch_array(square_array, chunk1, start, end, dimension);
 		
 		// receive updated chunks from process #3
 		MPI_Recv(chunk1, dimension*3, MPI_DOUBLE, 3, 66, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		//print_non_square_array(3, 7, chunk1);
-		
 		// place them back in square array
-		
+		start=get_range_from_p_num_start(dimension-2, world_size-1, 3);
+		end=get_range_from_p_num_end(dimension-2, world_size-1, 3);
+		square_array = stitch_array(square_array, chunk1, start, end, dimension);
 		
 		// finish and print final array
+		print_array(dimension, square_array);
 	}
 	
 	// child process #1
