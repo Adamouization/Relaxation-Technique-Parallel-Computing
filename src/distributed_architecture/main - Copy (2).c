@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <mpi.h>
-#include <math.h>
+
 
 void check_double_malloc(double* square_array) {
 	if (square_array == NULL) {
@@ -91,40 +91,6 @@ void print_non_square_array(int y, int x, double* square_array) {
  	}
 }
 
-int get_range_from_p_num_start(int dimension, int number_of_processes, int process_rank)
-{
-	float div= ((float)dimension)/number_of_processes;
-	int chunk_height = (int)ceil(div);
-		printf("div: %f \n",div);
-		printf("dimension: %d \n",dimension);
-		printf("number_of_processes: %d \n",number_of_processes);
-		printf("chunk_height: %d \n",chunk_height);
-	int start_height = (process_rank-1)*chunk_height;
-	int end_height = start_height+chunk_height+1;
-	
-	return start_height;
-}
-
-int get_range_from_p_num_end(int dimension, int number_of_processes, int process_rank) {
-	float div= ((float)dimension)/number_of_processes;
-	int chunk_height = (int)ceil(div);
-		printf("div: %f \n",div);
-		printf("dimension: %d \n",dimension);
-		printf("number_of_processes: %d \n",number_of_processes);
-		printf("chunk_height: %d \n",chunk_height);
-	int start_height = (process_rank-1)*chunk_height;
-	int end_height = start_height+chunk_height+1;
-	
-	if(process_rank==number_of_processes)
-	{
-		return dimension+1;
-	}
-	else
-	{
-		return end_height;
-	}
-}
-
 
 double* select_chunk(int dimension, double* square_array, int start_row, int end_row) {
 	int difference = end_row - start_row + 1;
@@ -141,14 +107,12 @@ double* select_chunk(int dimension, double* square_array, int start_row, int end
 	return chunk_array;
 }
 
-
 int main() {
 	int DEBUG = 1;
 	int dimension = 7;
 	double precision = 0.01f;
 	int world_size;
 	int world_rank;
-	
 	
     int rc = MPI_Init(NULL, NULL); // Initialize the MPI environment.
 	if (rc != MPI_SUCCESS) {
@@ -159,21 +123,8 @@ int main() {
     MPI_Comm_size(MPI_COMM_WORLD, &world_size); // Get the number of processes
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank); // Get the rank of the process
 	
-	
-	/*int st=get_range_from_p_num_start(dimension-2, world_rank, 1);
-	int en=get_range_from_p_num_end(dimension-2, world_rank, 1);
-	printf("myArray[0]: %d \n",st);
-	printf("myArray[1]: %d \n",en);*/
-	
 	// papa process
 	if (world_rank == 0) {
-		
-		int st=get_range_from_p_num_start(dimension-2, world_size-1, 3);
-		int en=get_range_from_p_num_end(dimension-2, world_size-1, 3);
-		printf("myArray[0]: %d \n",st);
-		printf("myArray[1]: %d \n",en);
-		
-		
 		double *square_array = initialise_square_array(dimension);
 		//print_array(dimension, square_array);
 		
@@ -197,21 +148,11 @@ int main() {
 		MPI_Send(chunk1, entire_dimension, MPI_DOUBLE, 3, 99, MPI_COMM_WORLD);
 		
 		
-		// receive updated chunks from process #1
+		// receive updated chunks
 		MPI_Recv(chunk1, dimension*4, MPI_DOUBLE, 1, 66, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		//print_non_square_array(4, 7, chunk1);
-		
-		// receive updated chunks from process #2
-		MPI_Recv(chunk1, dimension*4, MPI_DOUBLE, 2, 66, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		//print_non_square_array(4, 7, chunk1);
-		
-		// receive updated chunks from process #3
-		MPI_Recv(chunk1, dimension*3, MPI_DOUBLE, 3, 66, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		//print_non_square_array(3, 7, chunk1);
+		print_non_square_array(4, 7, chunk1);
 		
 		// place them back in square array
-		
-		
 		// finish and print final array
 	}
 	
@@ -229,9 +170,14 @@ int main() {
 		for (i = 0; i < 4; i++) {
 			for (j = 0; j < my_dimension/4; j++) {
 				my_chunk1[i*(my_dimension/4)+j] = my_chunk1[i*(my_dimension/4)+j] + 10;
+				//printf("%f ", my_chunk1[i*(my_dimension/4)+j] );
 			}
+			//printf("\n ");
 		}
+		
+		
 		// send chunk back to root process
+		printf("%d", my_dimension);	
 		MPI_Send(my_chunk1, my_dimension, MPI_DOUBLE, 0, 66, MPI_COMM_WORLD);
 	}
 	
@@ -244,15 +190,8 @@ int main() {
 		//print_non_square_array(4,7,my_chunk1);
 		printf("Hello world from processor #%d out of %d processors\n", world_rank, world_size);
 		
-		// todo - perform relaxation on chunk here (instead of increment by 10)
-		int i,j;
-		for (i = 0; i < 4; i++) {
-			for (j = 0; j < my_dimension/4; j++) {
-				my_chunk1[i*(my_dimension/4)+j] = my_chunk1[i*(my_dimension/4)+j] + 10;
-			}
-		}
+		// perform relaxation on chunk
 		// send chunk back to root process
-		MPI_Send(my_chunk1, my_dimension, MPI_DOUBLE, 0, 66, MPI_COMM_WORLD);
 	}
 	
 	// child process #3
@@ -264,15 +203,8 @@ int main() {
 		//print_non_square_array(3,7,my_chunk1);
 		printf("Hello world from processor #%d out of %d processors\n", world_rank, world_size);
 		
-		// todo - perform relaxation on chunk here (instead of increment by 10)
-		int i,j;
-		for (i = 0; i < 3; i++) {
-			for (j = 0; j < my_dimension/3; j++) {
-				my_chunk1[i*(my_dimension/3)+j] = my_chunk1[i*(my_dimension/3)+j] + 10;
-			}
-		}
+		// perform relaxation on chunk
 		// send chunk back to root process
-		MPI_Send(my_chunk1, my_dimension, MPI_DOUBLE, 0, 66, MPI_COMM_WORLD);
 	}
 	
     MPI_Finalize(); // Clean up the MPI environment.
