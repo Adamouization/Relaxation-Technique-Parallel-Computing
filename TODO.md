@@ -11,7 +11,7 @@
 * [X] Polish code for batch submission on Balena (print parameters and time at the end).
 * [X] Set number of threads from command line input.
 * [X] Gather data in an Excel spreadsheet and plot it in a graphs.
-* [ ] Write report in LaTeX
+* [X] Write report in LaTeX
 
 ### Code design
 * [X] Move all code from the main() to individual functions.
@@ -31,5 +31,7 @@
 ## Distributed Memory Architecture (MPI)
 
 * [X] Implement basic MPI code
+* [X] Fix warnings
+* [ ] Move helper code into separate source files
 * [ ] Replace duplicate hard-coded code with loops
 * [ ] Implement relaxation in child processes

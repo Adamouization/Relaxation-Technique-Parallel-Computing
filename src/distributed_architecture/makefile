@@ -10,4 +10,5 @@ $(TARGET): $(OBJFILES)
 	$(CC) -o $(TARGET) $(OBJFILES) $(LDFLAGS)
 	
 clean:
+	clear
 	rm -rf $(OBJFILES) $(TARGET) *~
