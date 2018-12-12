@@ -38,39 +38,39 @@ int DEBUG = false;
 
 
 /*
- * 
+ * Returns the start row of the sub array to pass to the child process.
  */
-int get_range_from_p_num_start(int dimension, int number_of_processes, int process_rank) {
-	float div = (float)dimension / (float)number_of_processes;
+int get_sub_array_start_row(int dim, int numb_of_children, int rank) {
+	float div = (float)dim / (float)numb_of_children;
 	int chunk_height = (int)ceil(div);
 	if (DEBUG) {
-		printf("div: %f \n",div);
-		printf("dimension: %d \n",dimension);
-		printf("number_of_processes: %d \n",number_of_processes);
-		printf("chunk_height: %d \n",chunk_height);
+		printf("div: %f \n", div);
+		printf("dim: %d \n", dim);
+		printf("numb_of_children: %d \n", numb_of_children);
+		printf("chunk_height: %d \n", chunk_height);
 	}
-	int start_height = (process_rank-1)*chunk_height;	
+	int start_height = (rank - 1) * chunk_height;	
 	return start_height;
 }
 
 
 /*
- * 
+ * Returns the end row of the sub array to pass to the child process.
  */
-int get_range_from_p_num_end(int dimension, int number_of_processes, int process_rank) {
-	float div= (float)dimension / (float)number_of_processes;
+int get_sub_array_end_row(int dim, int numb_of_children, int rank) {
+	float div = (float)dim / (float)numb_of_children;
 	int chunk_height = (int)ceil(div);
 	if (DEBUG) {
-		printf("div: %f \n",div);
-		printf("dimension: %d \n",dimension);
-		printf("number_of_processes: %d \n",number_of_processes);
-		printf("chunk_height: %d \n",chunk_height);
+		printf("div: %f \n", div);
+		printf("dimension: %d \n", dim);
+		printf("numb_of_children: %d \n", numb_of_children);
+		printf("chunk_height: %d \n", chunk_height);
 	}
-	int start_height = (process_rank-1)*chunk_height;
-	int end_height = start_height+chunk_height+1;
+	int start_height = (rank - 1) * chunk_height;
+	int end_height = start_height + chunk_height + 1;
 	
-	if(process_rank == number_of_processes) {
-		return dimension+1;
+	if(rank == numb_of_children) {
+		return dim + 1;
 	} else {
 		return end_height;
 	}
@@ -82,7 +82,6 @@ int main(int argc, char** argv) {
 	int dimension, p_dimension, root_process, num_elements_to_send, 
 		num_elements_to_recv, world_size, world_rank, rc, start, end;
 	double* sub_arr; // chunk of main square array with specific rows only
-	double* child_sub_arr;	// chunk of square array with specific rows children operate on
 	//double precision = 0.01f;
 	
 	// initialise variables
@@ -111,10 +110,8 @@ int main(int argc, char** argv) {
 	if (world_rank == root_process) {
 		double *square_array = initialise_square_array(dimension);
 		
-		if (true) {
-			print_square_array(dimension, square_array);
-			printf("\n");
-		}
+		print_square_array(dimension, square_array); 
+		printf("\n");
 		
 		// send data to child process #1
 		sub_arr = select_chunk(dimension, square_array, 0, 3);
@@ -136,20 +133,20 @@ int main(int argc, char** argv) {
 		
 		// receive updated chunks from process #1 and place them back in square array
 		MPI_Recv(sub_arr, dimension*4, MPI_DOUBLE, 1, recv_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		start=get_range_from_p_num_start(dimension-2, world_size-1, 1);
-		end=get_range_from_p_num_end(dimension-2, world_size-1, 1);
+		start=get_sub_array_start_row(dimension-2, world_size-1, 1);
+		end=get_sub_array_end_row(dimension-2, world_size-1, 1);
 		square_array = stitch_array(square_array, sub_arr, start, end, dimension);
 		
 		// receive updated chunks from process #2 and place them back in square array
 		MPI_Recv(sub_arr, dimension*4, MPI_DOUBLE, 2, recv_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		start=get_range_from_p_num_start(dimension-2, world_size-1, 2);
-		end=get_range_from_p_num_end(dimension-2, world_size-1, 2);
+		start=get_sub_array_start_row(dimension-2, world_size-1, 2);
+		end=get_sub_array_end_row(dimension-2, world_size-1, 2);
 		square_array = stitch_array(square_array, sub_arr, start, end, dimension);
 		
 		// receive updated chunks from process #3 and place them back in square array
 		MPI_Recv(sub_arr, dimension*3, MPI_DOUBLE, 3, recv_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		start=get_range_from_p_num_start(dimension-2, world_size-1, 3);
-		end=get_range_from_p_num_end(dimension-2, world_size-1, 3);
+		start=get_sub_array_start_row(dimension-2, world_size-1, 3);
+		end=get_sub_array_end_row(dimension-2, world_size-1, 3);
 		square_array = stitch_array(square_array, sub_arr, start, end, dimension);
 		
 		// finish and print final array
@@ -159,11 +156,11 @@ int main(int argc, char** argv) {
 	// child process #1 (do rows 1 and 2)
 	else if (world_rank == 1){
 		MPI_Recv(&num_elements_to_recv, 1, MPI_INT, root_process, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		child_sub_arr = malloc((long unsigned int)num_elements_to_recv * sizeof(double));
-		MPI_Recv(child_sub_arr, num_elements_to_recv, MPI_DOUBLE, root_process, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		sub_arr = malloc((long unsigned int)num_elements_to_recv * sizeof(double));
+		MPI_Recv(sub_arr, num_elements_to_recv, MPI_DOUBLE, root_process, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		
 		if (DEBUG) {
-			print_non_square_array(7, 4, child_sub_arr);
+			print_non_square_array(7, 4, sub_arr);
 			printf("Hello world from processor #%d out of %d processors\n", world_rank, world_size);
 		}
 		
@@ -171,22 +168,22 @@ int main(int argc, char** argv) {
 		int i, j;
 		for (i = 0; i < 4; i++) {
 			for (j = 0; j < num_elements_to_recv/4; j++) {
-				child_sub_arr[i* (num_elements_to_recv/4) + j] = child_sub_arr[i * (num_elements_to_recv/4) + j] + 10;
+				sub_arr[i* (num_elements_to_recv/4) + j] = sub_arr[i * (num_elements_to_recv/4) + j] + 10;
 			}
 		}
 		
 		// send chunk back to root process
-		MPI_Send(child_sub_arr, num_elements_to_recv, MPI_DOUBLE, root_process, recv_tag, MPI_COMM_WORLD);
+		MPI_Send(sub_arr, num_elements_to_recv, MPI_DOUBLE, root_process, recv_tag, MPI_COMM_WORLD);
 	}
 	
 	// child process #2 do rows 3 and 4
 	else if (world_rank == 2){
 		MPI_Recv(&num_elements_to_recv, 1, MPI_INT, root_process, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		double *child_sub_arr = malloc((long unsigned int)num_elements_to_recv * sizeof(double));
-		MPI_Recv(child_sub_arr, num_elements_to_recv, MPI_DOUBLE, root_process, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		double *sub_arr = malloc((long unsigned int)num_elements_to_recv * sizeof(double));
+		MPI_Recv(sub_arr, num_elements_to_recv, MPI_DOUBLE, root_process, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		
 		if (DEBUG) {
-			print_non_square_array(7, 4, child_sub_arr);
+			print_non_square_array(7, 4, sub_arr);
 			printf("Hello world from processor #%d out of %d processors\n", world_rank, world_size);
 		}
 		
@@ -194,22 +191,22 @@ int main(int argc, char** argv) {
 		int i, j;
 		for (i = 0; i < 4; i++) {
 			for (j = 0; j < num_elements_to_recv/4; j++) {
-				child_sub_arr[i * (num_elements_to_recv/4) + j] = child_sub_arr[i * (num_elements_to_recv/4) + j] + 10;
+				sub_arr[i * (num_elements_to_recv/4) + j] = sub_arr[i * (num_elements_to_recv/4) + j] + 10;
 			}
 		}
 		
 		// send chunk back to root process
-		MPI_Send(child_sub_arr, num_elements_to_recv, MPI_DOUBLE, root_process, recv_tag, MPI_COMM_WORLD);
+		MPI_Send(sub_arr, num_elements_to_recv, MPI_DOUBLE, root_process, recv_tag, MPI_COMM_WORLD);
 	}
 	
 	// child process #3 do row 5 only
 	else if (world_rank == 3){
 		MPI_Recv(&num_elements_to_recv, 1, MPI_INT, root_process, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		double *child_sub_arr = malloc((long unsigned int)num_elements_to_recv * sizeof(double));
-		MPI_Recv(child_sub_arr, num_elements_to_recv, MPI_DOUBLE, root_process, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		double *sub_arr = malloc((long unsigned int)num_elements_to_recv * sizeof(double));
+		MPI_Recv(sub_arr, num_elements_to_recv, MPI_DOUBLE, root_process, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		
 		if (DEBUG) {
-			print_non_square_array(7, 3, child_sub_arr);
+			print_non_square_array(7, 3, sub_arr);
 			printf("Hello world from processor #%d out of %d processors\n", world_rank, world_size);
 		}
 		
@@ -217,12 +214,12 @@ int main(int argc, char** argv) {
 		int i, j;
 		for (i = 0; i < 3; i++) {
 			for (j = 0; j < num_elements_to_recv/3; j++) {
-				child_sub_arr[i * (num_elements_to_recv/3) + j] = child_sub_arr[i * (num_elements_to_recv/3) + j] + 10;
+				sub_arr[i * (num_elements_to_recv/3) + j] = sub_arr[i * (num_elements_to_recv/3) + j] + 10;
 			}
 		}
 		
 		// send chunk back to root process
-		MPI_Send(child_sub_arr, num_elements_to_recv, MPI_DOUBLE, root_process, recv_tag, MPI_COMM_WORLD);
+		MPI_Send(sub_arr, num_elements_to_recv, MPI_DOUBLE, root_process, recv_tag, MPI_COMM_WORLD);
 	}
 	
 	// Clean up the MPI environment.
