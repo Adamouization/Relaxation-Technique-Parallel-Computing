@@ -43,7 +43,7 @@ struct sub_arr_rows {
 
 int main(int argc, char** argv) {
 	int dimension, p_dimension, root_process, num_elements_to_send, 
-		num_elements_to_recv, world_size, world_rank, rc;
+		num_elements_to_recv, num_sub_arr_rows, world_size, world_rank, rc;
 	double* sub_arr; // chunk of main square array with specific rows only
 	//double precision = 0.01f;
 	
@@ -77,41 +77,25 @@ int main(int argc, char** argv) {
 		print_square_array(dimension, square_array); 
 		printf("\n");
 		
-		// send data to child process #1
-		sub_arr = select_chunk(dimension, square_array, 0, 3);
-		num_elements_to_send = dimension * 4;
-		MPI_Send(&num_elements_to_send, 1, MPI_INT, 1, send_tag, MPI_COMM_WORLD);
-		MPI_Send(sub_arr, num_elements_to_send, MPI_DOUBLE, 1, send_tag, MPI_COMM_WORLD);
-		
-		// send data to child process #2
-		sub_arr = select_chunk(dimension, square_array, 2, 5);
-		num_elements_to_send = dimension * 4;
-		MPI_Send(&num_elements_to_send, 1, MPI_INT, 2, send_tag, MPI_COMM_WORLD);
-		MPI_Send(sub_arr, num_elements_to_send, MPI_DOUBLE, 2, send_tag, MPI_COMM_WORLD);
-
-		// send data to child process #3
-		sub_arr = select_chunk(dimension, square_array, 4, 6);
-		num_elements_to_send = dimension * 3;
-		MPI_Send(&num_elements_to_send, 1, MPI_INT, 3, send_tag, MPI_COMM_WORLD);
-		MPI_Send(sub_arr, num_elements_to_send, MPI_DOUBLE, 3, send_tag, MPI_COMM_WORLD);
-		
-		// receive updated chunks from process #1 and place them back in square array
-		MPI_Recv(sub_arr, dimension*4, MPI_DOUBLE, 1, recv_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		rows = get_sub_array_rows(dimension-2, world_size-1, 1);
-		printf("\n start row is %d and end row is %d\n", rows.start, rows.end);
-		square_array = stitch_array(square_array, sub_arr, rows.start, rows.end, dimension);
-		
-		// receive updated chunks from process #2 and place them back in square array
-		MPI_Recv(sub_arr, dimension*4, MPI_DOUBLE, 2, recv_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		rows = get_sub_array_rows(dimension-2, world_size-1, 2);
-		printf("\n start row is %d and end row is %d\n", rows.start, rows.end);
-		square_array = stitch_array(square_array, sub_arr, rows.start, rows.end, dimension);
-		
-		// receive updated chunks from process #3 and place them back in square array
-		MPI_Recv(sub_arr, dimension*3, MPI_DOUBLE, 3, recv_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		rows = get_sub_array_rows(dimension-2, world_size-1, 3);
-		printf("\n start row is %d and end row is %d\n", rows.start, rows.end);
-		square_array = stitch_array(square_array, sub_arr, rows.start, rows.end, dimension);
+		int id;
+		for (id = 1; id < world_size; id++) {
+			rows = get_sub_array_rows(dimension - 2, world_size - 1, id);
+			num_sub_arr_rows = rows.end - rows.start + 1;
+			
+			if (DEBUG) printf("\n start row is %d and end row is %d\n", rows.start, rows.end);
+			
+			// send portion of square array to children processes
+			sub_arr = select_chunk(dimension, square_array, rows.start, rows.end);
+			num_elements_to_send = dimension * num_sub_arr_rows;
+			MPI_Send(&num_elements_to_send, 1, MPI_INT, id, send_tag, MPI_COMM_WORLD);
+			MPI_Send(sub_arr, num_elements_to_send, MPI_DOUBLE, id, send_tag, MPI_COMM_WORLD);
+			
+			// receive updated chunks from children processes
+			MPI_Recv(sub_arr, num_elements_to_send, MPI_DOUBLE, id, recv_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			
+			// place updated sub array back in square array
+			square_array = stitch_array(square_array, sub_arr, rows.start, rows.end, dimension);
+		}
 		
 		// finish and print final array
 		print_square_array(dimension, square_array);
