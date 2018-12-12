@@ -41,32 +41,6 @@ struct sub_arr_rows {
 };
 
 
-/*
- * Returns the number of the start and end rows from the initial square array 
- * used to cut it into a sub array that is sent to the childen processes for
- * calculations.
- */
-struct sub_arr_rows get_sub_array_rows(int dim, int num_of_children, int rank) {
-	struct sub_arr_rows rows;
-	float div;
-	int array_height;
-	
-	div = (float)dim / (float)num_of_children;
-	array_height = (int)ceil(div);
-	
-	if (DEBUG) {
-		printf("div: %f \n", div);
-		printf("dim: %d \n", dim);
-		printf("num_of_children: %d \n", num_of_children);
-		printf("array_height: %d \n", array_height);
-	}
-	
-	rows.start = (rank - 1) * array_height;
-	rows.end = (rank == num_of_children) ? dim + 1 : rows.start + array_height + 1;
-	return rows;
-}
-
-
 int main(int argc, char** argv) {
 	int dimension, p_dimension, root_process, num_elements_to_send, 
 		num_elements_to_recv, world_size, world_rank, rc;

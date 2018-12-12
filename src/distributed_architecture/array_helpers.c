@@ -10,8 +10,13 @@
  
 #include <stdio.h>
 #include <stdlib.h>
-#include <pthread.h>
+#include <math.h>
 #include "array_helpers.h"
+
+struct sub_arr_rows {
+	int start;
+	int end;
+};
 
 
 /*
@@ -53,6 +58,25 @@ double* create_new_array(int dim_x, int dim_y) {
 	check_double_malloc(array);
 	
 	return array;
+}
+
+
+/*
+ * Returns the number of the start and end rows from the initial square array 
+ * used to cut it into a sub array that is sent to the childen processes for
+ * calculations.
+ */
+struct sub_arr_rows get_sub_array_rows(int dim, int num_of_children, int rank) {
+	struct sub_arr_rows rows;
+	float div;
+	int array_height;
+	
+	div = (float)dim / (float)num_of_children;
+	array_height = (int)ceil(div);
+	rows.start = (rank - 1) * array_height;
+	rows.end = (rank == num_of_children) ? dim + 1 : rows.start + array_height + 1;
+	
+	return rows;
 }
 
 
