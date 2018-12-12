@@ -5,7 +5,7 @@
  * Header file for functions used to manipulate arrays.
  * 
  * Author: Adam Jaamour
- * Date: 30-Nov-2018
+ * Date: 07-Jan-2019
  */
  
  
