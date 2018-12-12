@@ -35,52 +35,41 @@
 #define recv_tag 2
 
 int DEBUG = false;
+struct sub_arr_rows {
+	int start;
+	int end;
+};
 
 
 /*
- * Returns the start row of the sub array to pass to the child process.
+ * Returns the number of the start and end rows from the initial square array 
+ * used to cut it into a sub array that is sent to the childen processes for
+ * calculations.
  */
-int get_sub_array_start_row(int dim, int numb_of_children, int rank) {
-	float div = (float)dim / (float)numb_of_children;
-	int chunk_height = (int)ceil(div);
+struct sub_arr_rows get_sub_array_rows(int dim, int num_of_children, int rank) {
+	struct sub_arr_rows rows;
+	float div;
+	int array_height;
+	
+	div = (float)dim / (float)num_of_children;
+	array_height = (int)ceil(div);
+	
 	if (DEBUG) {
 		printf("div: %f \n", div);
 		printf("dim: %d \n", dim);
-		printf("numb_of_children: %d \n", numb_of_children);
-		printf("chunk_height: %d \n", chunk_height);
+		printf("num_of_children: %d \n", num_of_children);
+		printf("array_height: %d \n", array_height);
 	}
-	int start_height = (rank - 1) * chunk_height;	
-	return start_height;
-}
-
-
-/*
- * Returns the end row of the sub array to pass to the child process.
- */
-int get_sub_array_end_row(int dim, int numb_of_children, int rank) {
-	float div = (float)dim / (float)numb_of_children;
-	int chunk_height = (int)ceil(div);
-	if (DEBUG) {
-		printf("div: %f \n", div);
-		printf("dimension: %d \n", dim);
-		printf("numb_of_children: %d \n", numb_of_children);
-		printf("chunk_height: %d \n", chunk_height);
-	}
-	int start_height = (rank - 1) * chunk_height;
-	int end_height = start_height + chunk_height + 1;
 	
-	if(rank == numb_of_children) {
-		return dim + 1;
-	} else {
-		return end_height;
-	}
+	rows.start = (rank - 1) * array_height;
+	rows.end = (rank == num_of_children) ? dim + 1 : rows.start + array_height + 1;
+	return rows;
 }
-
 
 
 int main(int argc, char** argv) {
 	int dimension, p_dimension, root_process, num_elements_to_send, 
-		num_elements_to_recv, world_size, world_rank, rc, start, end;
+		num_elements_to_recv, world_size, world_rank, rc;
 	double* sub_arr; // chunk of main square array with specific rows only
 	//double precision = 0.01f;
 	
@@ -109,6 +98,7 @@ int main(int argc, char** argv) {
 	// Root process
 	if (world_rank == root_process) {
 		double *square_array = initialise_square_array(dimension);
+		struct sub_arr_rows rows;
 		
 		print_square_array(dimension, square_array); 
 		printf("\n");
@@ -133,21 +123,21 @@ int main(int argc, char** argv) {
 		
 		// receive updated chunks from process #1 and place them back in square array
 		MPI_Recv(sub_arr, dimension*4, MPI_DOUBLE, 1, recv_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		start=get_sub_array_start_row(dimension-2, world_size-1, 1);
-		end=get_sub_array_end_row(dimension-2, world_size-1, 1);
-		square_array = stitch_array(square_array, sub_arr, start, end, dimension);
+		rows = get_sub_array_rows(dimension-2, world_size-1, 1);
+		printf("\n start row is %d and end row is %d\n", rows.start, rows.end);
+		square_array = stitch_array(square_array, sub_arr, rows.start, rows.end, dimension);
 		
 		// receive updated chunks from process #2 and place them back in square array
 		MPI_Recv(sub_arr, dimension*4, MPI_DOUBLE, 2, recv_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		start=get_sub_array_start_row(dimension-2, world_size-1, 2);
-		end=get_sub_array_end_row(dimension-2, world_size-1, 2);
-		square_array = stitch_array(square_array, sub_arr, start, end, dimension);
+		rows = get_sub_array_rows(dimension-2, world_size-1, 2);
+		printf("\n start row is %d and end row is %d\n", rows.start, rows.end);
+		square_array = stitch_array(square_array, sub_arr, rows.start, rows.end, dimension);
 		
 		// receive updated chunks from process #3 and place them back in square array
 		MPI_Recv(sub_arr, dimension*3, MPI_DOUBLE, 3, recv_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		start=get_sub_array_start_row(dimension-2, world_size-1, 3);
-		end=get_sub_array_end_row(dimension-2, world_size-1, 3);
-		square_array = stitch_array(square_array, sub_arr, start, end, dimension);
+		rows = get_sub_array_rows(dimension-2, world_size-1, 3);
+		printf("\n start row is %d and end row is %d\n", rows.start, rows.end);
+		square_array = stitch_array(square_array, sub_arr, rows.start, rows.end, dimension);
 		
 		// finish and print final array
 		print_square_array(dimension, square_array);
