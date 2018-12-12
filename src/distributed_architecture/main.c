@@ -10,18 +10,8 @@
  * 2) "mpirun -np <number_of_processes> ./distributed_relaxation"
  * 
  * Author: Adam Jaamour
- * Date: 30-Nov-2018
+ * Date: 07-Jan-2019
  */
-
-/*
-83.000000 86.000000 77.000000 15.000000 93.000000 35.000000 86.000000
-92.000000 49.000000 21.000000 62.000000 27.000000 90.000000 59.000000
-63.000000 26.000000 40.000000 26.000000 72.000000 36.000000 11.000000
-68.000000 67.000000 29.000000 82.000000 30.000000 62.000000 23.000000
-67.000000 35.000000 29.000000 2.000000 22.000000 58.000000 69.000000
-67.000000 93.000000 56.000000 11.000000 42.000000 29.000000 73.000000
-21.000000 19.000000 84.000000 37.000000 98.000000 24.000000 15.000000
-*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,6 +35,7 @@ int main(int argc, char** argv) {
 	int dimension, p_dimension, root_process, num_elements_to_send, 
 		num_elements_to_recv, num_sub_arr_rows, world_size, world_rank, rc;
 	double* sub_arr; // chunk of main square array with specific rows only
+	struct sub_arr_rows rows;
 	//double precision = 0.01f;
 	
 	// initialise variables
@@ -72,7 +63,6 @@ int main(int argc, char** argv) {
 	// Root process
 	if (world_rank == root_process) {
 		double *square_array = initialise_square_array(dimension);
-		struct sub_arr_rows rows;
 		
 		print_square_array(dimension, square_array); 
 		printf("\n");
@@ -101,68 +91,27 @@ int main(int argc, char** argv) {
 		print_square_array(dimension, square_array);
 	}
 	
-	// child process #1 (do rows 1 and 2)
-	else if (world_rank == 1){
+	// Children processes
+	else {
+		// get the number of elements in portion of array to receive
+		rows = get_sub_array_rows(dimension - 2, world_size - 1, world_rank);
+		num_sub_arr_rows = rows.end - rows.start + 1;
 		MPI_Recv(&num_elements_to_recv, 1, MPI_INT, root_process, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		
+		// receive portion of array to perform relaxation on
 		sub_arr = malloc((long unsigned int)num_elements_to_recv * sizeof(double));
 		MPI_Recv(sub_arr, num_elements_to_recv, MPI_DOUBLE, root_process, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		
 		if (DEBUG) {
-			print_non_square_array(7, 4, sub_arr);
+			print_non_square_array(dimension, num_sub_arr_rows, sub_arr);
 			printf("Hello world from processor #%d out of %d processors\n", world_rank, world_size);
 		}
 		
 		// todo - perform relaxation on chunk here (instead of increment by 10)
 		int i, j;
-		for (i = 0; i < 4; i++) {
-			for (j = 0; j < num_elements_to_recv/4; j++) {
-				sub_arr[i* (num_elements_to_recv/4) + j] = sub_arr[i * (num_elements_to_recv/4) + j] + 10;
-			}
-		}
-		
-		// send chunk back to root process
-		MPI_Send(sub_arr, num_elements_to_recv, MPI_DOUBLE, root_process, recv_tag, MPI_COMM_WORLD);
-	}
-	
-	// child process #2 do rows 3 and 4
-	else if (world_rank == 2){
-		MPI_Recv(&num_elements_to_recv, 1, MPI_INT, root_process, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		double *sub_arr = malloc((long unsigned int)num_elements_to_recv * sizeof(double));
-		MPI_Recv(sub_arr, num_elements_to_recv, MPI_DOUBLE, root_process, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		
-		if (DEBUG) {
-			print_non_square_array(7, 4, sub_arr);
-			printf("Hello world from processor #%d out of %d processors\n", world_rank, world_size);
-		}
-		
-		// todo - perform relaxation on chunk here (instead of increment by 10)
-		int i, j;
-		for (i = 0; i < 4; i++) {
-			for (j = 0; j < num_elements_to_recv/4; j++) {
-				sub_arr[i * (num_elements_to_recv/4) + j] = sub_arr[i * (num_elements_to_recv/4) + j] + 10;
-			}
-		}
-		
-		// send chunk back to root process
-		MPI_Send(sub_arr, num_elements_to_recv, MPI_DOUBLE, root_process, recv_tag, MPI_COMM_WORLD);
-	}
-	
-	// child process #3 do row 5 only
-	else if (world_rank == 3){
-		MPI_Recv(&num_elements_to_recv, 1, MPI_INT, root_process, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		double *sub_arr = malloc((long unsigned int)num_elements_to_recv * sizeof(double));
-		MPI_Recv(sub_arr, num_elements_to_recv, MPI_DOUBLE, root_process, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		
-		if (DEBUG) {
-			print_non_square_array(7, 3, sub_arr);
-			printf("Hello world from processor #%d out of %d processors\n", world_rank, world_size);
-		}
-		
-		// todo - perform relaxation on chunk here (instead of increment by 10)
-		int i, j;
-		for (i = 0; i < 3; i++) {
-			for (j = 0; j < num_elements_to_recv/3; j++) {
-				sub_arr[i * (num_elements_to_recv/3) + j] = sub_arr[i * (num_elements_to_recv/3) + j] + 10;
+		for (i = 0; i < num_sub_arr_rows; i++) {
+			for (j = 0; j < num_elements_to_recv/num_sub_arr_rows; j++) {
+				sub_arr[i* (num_elements_to_recv/num_sub_arr_rows) + j] = sub_arr[i * (num_elements_to_recv/num_sub_arr_rows) + j] + 10;
 			}
 		}
 		
