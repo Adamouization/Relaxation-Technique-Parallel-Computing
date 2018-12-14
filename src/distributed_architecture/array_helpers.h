@@ -18,7 +18,7 @@
  double* create_new_array(int dim_x, int dim_y);
  
  
- struct sub_arr_rows get_sub_array_rows(int dim, int num_of_children, int rank);
+ struct sub_arr_rows get_sub_array_rows(int dim, int num_of_children, int rank, int extra_rows);
  
  
  double* stitch_array(double* sq_array, double* chunk_array, int start, int end, int dimension);

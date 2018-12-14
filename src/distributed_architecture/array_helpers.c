@@ -66,15 +66,32 @@ double* create_new_array(int dim_x, int dim_y) {
  * used to cut it into a sub array that is sent to the childen processes for
  * calculations.
  */
-struct sub_arr_rows get_sub_array_rows(int dim, int num_of_children, int rank) {
+struct sub_arr_rows get_sub_array_rows(int dim, int num_of_children, int rank, int extra_rows) {
 	struct sub_arr_rows rows;
-	float div;
-	int array_height;
+	int height, processable_dim;
 	
-	div = (float)dim / (float)num_of_children;
-	array_height = (int)ceil(div);
-	rows.start = (rank - 1) * array_height;
-	rows.end = (rank == num_of_children) ? dim + 1 : rows.start + array_height + 1;
+	processable_dim = dim - 2;
+	height = (int)floor(processable_dim / num_of_children) + extra_rows;
+	rows.start = (rank - 1) * height;
+	rows.end = rows.start + height + 1;
+	
+	/*printf("process ID = %d \n processable_dim = %d \n total number of child processes = %d \n array_height = %d \n rest = %d \n start row = %d \n end row = %d \n\n", 
+		rank, processable_dim, num_of_children, height, extra_rows, rows.start, rows.end);*/
+	
+	/*if (rows.start > processable_dim) {
+		rows.start = processable_dim + 1;
+		rows.end = dim - 1;
+	}
+	
+	if (rows.end > dim - 1) {
+		rows.end = dim - 1;
+	}*/
+	
+	if (rank == num_of_children) {
+		printf("test\n");
+		rows.start = dim - height;
+		rows.end = dim - 1;
+	}
 	
 	return rows;
 }
