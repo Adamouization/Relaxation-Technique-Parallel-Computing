@@ -9,6 +9,9 @@
  */
 
  
+ void print_parameters(int dimension, int num_processes, double precision);
+ 
+ 
  void print_square_array(int dimension, double* sq_array);
  
  

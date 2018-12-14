@@ -88,7 +88,6 @@ struct sub_arr_rows get_sub_array_rows(int dim, int num_of_children, int rank, i
 	}*/
 	
 	if (rank == num_of_children) {
-		printf("test\n");
 		rows.start = dim - height;
 		rows.end = dim - 1;
 	}

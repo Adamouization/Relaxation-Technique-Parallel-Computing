@@ -34,6 +34,6 @@
 * [X] Fix warnings
 * [X] Move helper code into separate source files
 * [X] Replace duplicate hard-coded code with loops
-* [ ] Take user input from command line to determine parameters
+* [X] Take user input from command line to determine parameters
 * [ ] Measure time
 * [ ] Implement relaxation in child processes

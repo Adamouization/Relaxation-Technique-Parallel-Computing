@@ -13,6 +13,17 @@
 
 
 /*
+ * Prints the initial data values used to initiate the program.
+ */
+void print_parameters(int dimension, int num_processes, double precision) {
+	printf("\nArray dimension: %d\n", dimension);
+	printf("Number of processes: %d\n", num_processes);
+	printf("Precision: %f\n", precision);
+	printf("\n");
+}
+
+
+/*
  * Prints a square array to the command line.
  */
 void print_square_array(int dim, double* sq_array) {

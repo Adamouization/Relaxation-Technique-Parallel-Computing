@@ -7,7 +7,8 @@
  *
  * Local usage: 
  * 1) "mpicc -Wall -Wextra -Wconversion main.c -o distributed_relaxation -lm"
- * 2) "mpirun -np <number_of_processes> ./distributed_relaxation"
+ * 2) "mpirun -np <num_processes> ./distributed_relaxation -d <dimension> -p <precision> -debug <debug mode>"
+ * example: mpirun -np 4 ./distributed_relaxation -d 15 -p 0.01 -debug 1
  * 
  * Author: Adam Jaamour
  * Date: 07-Jan-2019
@@ -15,8 +16,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
-#include <stdbool.h>
 #include <mpi.h>
 #include "array_helpers.h"
 #include "print_helpers.h"
@@ -24,7 +25,7 @@
 #define send_tag 1
 #define recv_tag 2
 
-int DEBUG = false;
+int DEBUG;
 struct sub_arr_rows {
 	int start;
 	int end;
@@ -37,10 +38,50 @@ int main(int argc, char** argv) {
 	int root_process, world_size, world_rank, rc;
 	double* sub_arr; // chunk of main square array with specific rows only
 	struct sub_arr_rows rows;
-	//double precision = 0.01f;
+	double precision;
 	
-	// initialise variables
+	// Default values
+	DEBUG = 1;
 	dimension = 100;
+	precision = 0.01f;
+	
+	// Read and Parse command line input
+	int arg;
+	for (arg = 1; arg < argc; arg++) {
+		// parse square array dimension
+		if (strcmp(argv[arg], "-d") == 0) {
+			if (arg + 1 <= argc - 1) { // ensure there are more arguments
+				if (atoi(argv[arg+1]) > 0) {
+					arg++;
+					dimension = atoi(argv[arg]);
+				} else {
+					fprintf(stderr, "WARNING: Invalid argument for -d. Must be a positive integer. Using dimension = %d as default value.\n", dimension);
+				}
+			}
+		} 
+		// parse square array values' floating precision
+		else if (strcmp(argv[arg], "-p") == 0) {
+			if (arg + 1 <= argc - 1) {
+				if (atof(argv[arg+1]) > 0.0) {
+					arg++;
+					precision = atof(argv[arg]);
+				} else {
+					fprintf(stderr, "WARNING: Invalid argument for -p. Must be a positive float. Using dimension = %f as default value.\n", precision);
+				}
+			}
+		}
+		// parse debug code value
+		else if (strcmp(argv[arg], "-debug") == 0) {
+			if (arg + 1 <= argc - 1) { /* Make sure we have more arguments */
+				if (atoi(argv[arg+1]) >= 0) {
+					arg++;
+					DEBUG = atoi(argv[arg]);
+				} else {
+					fprintf(stderr, "WARNING: Invalid argument for -debug. Must be a positive integer. Using dimension = %d as default value.\n", DEBUG);
+				}
+			}
+		}
+	}
 	
 	// Initialize the MPI environment.
     rc = MPI_Init(NULL, NULL);
@@ -65,15 +106,18 @@ int main(int argc, char** argv) {
 		world_size = dimension - 2;
 	}
 	
-	// calculate the number of extra rows to assign to individual processes
+	// Calculate the number of extra rows to assign to individual processes
 	num_extra_rows = (dimension - 2) - (world_size - 1);
 	
 	// Executed by root process only
-	if (world_rank == root_process) {
+	if (world_rank == root_process) {		
+		print_parameters(dimension, world_size, precision);
 		double *square_array = initialise_square_array(dimension);
 		
-		print_square_array(dimension, square_array); 
-		printf("\n");
+		if (DEBUG >= 1) {
+			print_square_array(dimension, square_array); 
+			printf("\n");
+		}
 		
 		int id;
 		for (id = 1; id < world_size; id++) {
@@ -88,7 +132,7 @@ int main(int argc, char** argv) {
 			rows = get_sub_array_rows(dimension, world_size - 1, id, extra_rows_to_send);
 			num_sub_arr_rows = rows.end - rows.start + 1;
 			
-			if (DEBUG) printf("\nID: %d start row is %d and end row is %d\n", id, rows.start, rows.end);
+			if (DEBUG >= 2) printf("\nID: %d start row is %d and end row is %d\n", id, rows.start, rows.end);
 			
 			// send portion of square array to children processes
 			sub_arr = select_chunk(dimension, square_array, rows.start, rows.end);
@@ -104,7 +148,10 @@ int main(int argc, char** argv) {
 		}
 		
 		// finish and print final array
-		print_square_array(dimension, square_array);
+		printf("Relaxation completed\n");
+		if (DEBUG >= 1) {
+			print_square_array(dimension, square_array);
+		}
 	}
 	
 	// Executed by all children processes
@@ -112,7 +159,7 @@ int main(int argc, char** argv) {
 		// get the number of extra rows assigned to this process
 		MPI_Recv(&extra_rows_to_recv, 1, MPI_INT, root_process, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		
-		if (DEBUG) printf("ID: %d extra_rows_to_recv %d\n\n", world_rank, extra_rows_to_recv);
+		if (DEBUG >= 2) printf("ID: %d extra_rows_to_recv %d\n\n", world_rank, extra_rows_to_recv);
 		
 		// get the number of elements in portion of array to receive
 		rows = get_sub_array_rows(dimension, world_size - 1, world_rank, extra_rows_to_recv);
@@ -123,7 +170,7 @@ int main(int argc, char** argv) {
 		sub_arr = malloc((long unsigned int)num_elements_to_recv * sizeof(double));
 		MPI_Recv(sub_arr, num_elements_to_recv, MPI_DOUBLE, root_process, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		
-		if (DEBUG) {
+		if (DEBUG >= 3) {
 			print_non_square_array(dimension, num_sub_arr_rows, sub_arr);
 			printf("Hello world from processor #%d out of %d processors\n\n", world_rank, world_size);
 		}
