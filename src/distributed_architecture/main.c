@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
 					arg++;
 					precision = atof(argv[arg]);
 				} else {
-					fprintf(stderr, "WARNING: Invalid argument for -p. Must be a positive float. Using dimension = %f as default value.\n", precision);
+					fprintf(stderr, "WARNING: Invalid argument for -p. Must be a positive float. Using precision = %f as default value.\n", precision);
 				}
 			}
 		}
@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
 					arg++;
 					DEBUG = atoi(argv[arg]);
 				} else {
-					fprintf(stderr, "WARNING: Invalid argument for -debug. Must be a positive integer. Using dimension = %d as default value.\n", DEBUG);
+					fprintf(stderr, "WARNING: Invalid argument for -debug. Must be a positive integer. Using debug mode = %d as default value.\n", DEBUG);
 				}
 			}
 		}
