@@ -2,7 +2,7 @@
  * SEQUENTIAL VERSION
  * author: Adam Jaamour
  *
- * gcc sequential.c -o sequential -Wall -Wextra -Wconversion"
+ * gcc sequential.c -o sequential.exe -Wall -Wextra -Wconversion
  * ./sequential
  */
 
@@ -25,7 +25,7 @@ void print_relaxation_data(double old, double l, double r, double u, double d, d
 
 // Global variables
 bool DEBUG = false;				// print data to the command line
-#define dim 25					// square array dimensions
+#define dim 15					// square array dimensions
 struct timeval time1, time2;	// structure used to calculate program time
 double **square_array;			// global square array of double
 
@@ -35,7 +35,7 @@ double **square_array;			// global square array of double
  */
 int main() {
 	// initialise values
-	double precision = 0.01f; // precision to perform relaxation at
+	double precision = 0.1f; // precision to perform relaxation at
 	initialise_square_array();
 	print_initial_data(precision);
 
@@ -47,7 +47,7 @@ int main() {
 		(double) (time2.tv_usec - time1.tv_usec) / 1000000 +
 		(double) (time2.tv_sec - time1.tv_sec));
 	
-	if (DEBUG) {
+	if (true) {
 		printf("\n------------------------ Final square array\n");
 		print_array();
 	}
@@ -167,8 +167,8 @@ void check_malloc(void) {
 void print_initial_data(double precision) {
 	printf("Array dimension: %d\n", dim);
 	printf("Precision: %f\n", precision);
-	if (DEBUG) {
-		printf("Square array:\n");
+	if (true) {
+		printf("Initial square array:\n");
 		print_array();
 	}
 }
