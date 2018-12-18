@@ -35,5 +35,7 @@
 * [X] Move helper code into separate source files
 * [X] Replace duplicate hard-coded code with loops
 * [X] Take user input from command line to determine parameters
-* [ ] Measure time
+* [ ] Measure time (using MPI_Wtime)
 * [ ] Implement relaxation in child processes
+* [ ] Gather data on Balena
+* [ ] Write report
