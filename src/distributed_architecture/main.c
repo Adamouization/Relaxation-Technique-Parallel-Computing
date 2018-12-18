@@ -170,12 +170,10 @@ int main(int argc, char** argv) {
 		// receive portion of array to perform relaxation on
 		sub_arr = malloc((long unsigned int)num_elements_to_recv * sizeof(double));
 		MPI_Recv(sub_arr, num_elements_to_recv, MPI_DOUBLE, root_process, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		
-		printf("Hello world from processor #%d out of %d processors\n\n", world_rank, world_size);
-		
+				
 		if (DEBUG >= 3) {
 			print_non_square_array(dimension, num_sub_arr_rows, sub_arr);
-			printf("Hello world from processor #%d out of %d processors\n\n", world_rank, world_size);
+			printf("Hello world from processor #%d out of %d child processes\n\n", world_rank, world_size - 1);
 		}
 		
 		// todo - perform relaxation on chunk here (instead of increment by 10)
