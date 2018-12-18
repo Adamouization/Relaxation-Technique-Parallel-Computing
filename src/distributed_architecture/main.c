@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <math.h>
 #include <mpi.h>
 #include "array_helpers.h"
@@ -170,18 +171,76 @@ int main(int argc, char** argv) {
 		sub_arr = malloc((long unsigned int)num_elements_to_recv * sizeof(double));
 		MPI_Recv(sub_arr, num_elements_to_recv, MPI_DOUBLE, root_process, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		
+		printf("Hello world from processor #%d out of %d processors\n\n", world_rank, world_size);
+		
 		if (DEBUG >= 3) {
 			print_non_square_array(dimension, num_sub_arr_rows, sub_arr);
 			printf("Hello world from processor #%d out of %d processors\n\n", world_rank, world_size);
 		}
 		
 		// todo - perform relaxation on chunk here (instead of increment by 10)
+		bool is_above_precision = true;
+		int precision_counter;
+		int iteration_counter = 0;
+		double difference = 0.0;
+		int row_length = num_elements_to_recv / num_sub_arr_rows;
+		int number_of_values_to_change = ((num_sub_arr_rows-2) * (row_length-2));
 		int i, j;
+		
+		while(is_above_precision) {
+			precision_counter = 0;
+			for (i = 1; i < num_sub_arr_rows - 1; i++) {
+				for (j = 1; j < row_length - 1; j++) {
+					// value to replace
+					double old_value = sub_arr[i * row_length + j]; 
+
+					// get 4 surrounding values needed to average
+					double v_left = sub_arr[i * row_length + j-1];
+					double v_right = sub_arr[i * row_length + j+1];
+					double v_up = sub_arr[(i-1) * row_length + j];
+					double v_down = sub_arr[(i+1) * row_length + j];
+
+					// perform the calculation
+					double new_value = (v_left + v_right + v_up + v_down) / 4;
+					
+					// replace the old value with the new one
+					sub_arr[i * row_length + j] = new_value;
+					
+					// check if difference is smaller than precision
+					difference = (double)fabs(old_value - new_value);
+					if (difference < precision) {
+						precision_counter++;
+					} else { // reset precision counter if diff smaller than prec
+						precision_counter = 0;
+					}
+
+					// if difference smaller than precision for all values, stop
+					if (precision_counter >= number_of_values_to_change) {
+						is_above_precision = false;
+					}
+					
+					// print data
+					if (iteration_counter == -1) {
+						printf("\n");
+						print_non_square_array(row_length, num_sub_arr_rows, sub_arr);
+						printf("\n");
+						print_relaxation_values_data(old_value, v_left, v_right, v_up, v_down, new_value, iteration_counter);
+					}
+				}
+				if (!(is_above_precision)) { // check at end of current array iteration
+					break;
+				}
+			}
+			iteration_counter++;
+		}
+		
+		/*
 		for (i = 0; i < num_sub_arr_rows; i++) {
 			for (j = 0; j < num_elements_to_recv/num_sub_arr_rows; j++) {
 				sub_arr[i* (num_elements_to_recv/num_sub_arr_rows) + j] = 9.9999990;
 			}
 		}
+		*/
 		
 		// send chunk back to root process
 		MPI_Send(sub_arr, num_elements_to_recv, MPI_DOUBLE, root_process, recv_tag, MPI_COMM_WORLD);

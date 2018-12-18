@@ -49,3 +49,15 @@ void print_non_square_array(int dim_x, int dim_y, double* arr) {
  		printf("\n");
  	}
 }
+
+
+/*
+ * Prints the values used to update a value of the square array in a single 
+ * iteration.
+ */
+void print_relaxation_values_data(double old, double l, double r, double u, 
+	double d, double new, int count) {
+	printf("Replacing %f with %f (l: %f, r: %f, u: %f, d: %f)\n", old, new, l, 
+		r, u, d);
+	printf("Count is %d\n\n", count);
+}
