@@ -13,6 +13,8 @@
 #include <math.h>
 #include "array_helpers.h"
 
+#define SEED 1000
+
 struct sub_arr_rows {
 	int start;
 	int end;
@@ -25,6 +27,7 @@ struct sub_arr_rows {
  * Populates it with random doubles ranging from 1.0 to 100.0.
  */
 double* initialise_square_array(int dim) {
+	srand(SEED);
 	long unsigned int dimension = (long unsigned int) dim;
 	double *sq_array;
 	int i, j;
@@ -74,7 +77,7 @@ struct sub_arr_rows get_sub_array_rows(int dim, int num_of_children, int rank, i
 	height = (int)floor(processable_dim / num_of_children) + extra_rows;
 	rows.start = (rank - 1) * height;
 	rows.end = rows.start + height + 1;
-	
+
 	/*printf("process ID = %d \n processable_dim = %d \n total number of child processes = %d \n array_height = %d \n rest = %d \n start row = %d \n end row = %d \n\n", 
 		rank, processable_dim, num_of_children, height, extra_rows, rows.start, rows.end);*/
 	

@@ -114,6 +114,7 @@ int main(int argc, char** argv) {
 	if (world_rank == root_process) {		
 		print_parameters(dimension, world_size, precision);
 		double *square_array = initialise_square_array(dimension);
+		double *temp_array = initialise_square_array(dimension);
 		
 		if (DEBUG >= 1) {
 			print_square_array(dimension, square_array); 
@@ -231,14 +232,6 @@ int main(int argc, char** argv) {
 			}
 			iteration_counter++;
 		}
-		
-		/*
-		for (i = 0; i < num_sub_arr_rows; i++) {
-			for (j = 0; j < num_elements_to_recv/num_sub_arr_rows; j++) {
-				sub_arr[i* (num_elements_to_recv/num_sub_arr_rows) + j] = 9.9999990;
-			}
-		}
-		*/
 		
 		// send chunk back to root process
 		MPI_Send(sub_arr, num_elements_to_recv, MPI_DOUBLE, root_process, recv_tag, MPI_COMM_WORLD);
