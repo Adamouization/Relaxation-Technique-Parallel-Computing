@@ -31,16 +31,23 @@ struct sub_arr_rows {
 	int start;
 	int end;
 };
+struct children_status {
+	int finished;
+};
 
 
 int main(int argc, char** argv) {
+
+	// Variables
 	int dimension, num_elements_to_send, num_elements_to_recv, num_sub_arr_rows, 
 		num_extra_rows, extra_rows_to_send, extra_rows_to_recv;
 	int root_process, world_size, world_rank, rc;
 	double* sub_arr; // chunk of main square array with specific rows only
 	struct sub_arr_rows rows;
 	double precision;
-	
+	MPI_Status status;
+	MPI_Request request;
+
 	// Default values
 	DEBUG = 1;
 	dimension = 100;
@@ -107,48 +114,122 @@ int main(int argc, char** argv) {
 		world_size = dimension - 2;
 	}
 	
-	// Calculate the number of extra rows to assign to individual processes
-	num_extra_rows = (dimension - 2) - (world_size - 1);
-	
 	// Executed by root process only
 	if (world_rank == root_process) {		
 		print_parameters(dimension, world_size, precision);
 		double *square_array = initialise_square_array(dimension);
-		double *temp_array = initialise_square_array(dimension);
+		double *old_values_array = initialise_square_array(dimension);
+		int id;
+		int i, j;
+		double diff;
+		int prec_count = 0;
+		int num_vals_tochange = (dimension - 2) * (dimension - 2);
+		int above_prec = 1;
+		int returned_is_within_prec = 1;
+		int tell_continue = 1;
+
+		int *flags_array = malloc((long unsigned int)(world_size-1) * sizeof(int));
+		int f;
+		for (f = 0; f < world_size - 1; f++) {
+			flags_array[f] = 0;
+		}
+
 		
 		if (DEBUG >= 1) {
 			print_square_array(dimension, square_array); 
 			printf("\n");
 		}
 		
-		int id;
-		for (id = 1; id < world_size; id++) {
-			
-			// determine which rows each process gets
-			extra_rows_to_send = 0;
-			if (num_extra_rows > 0) {
-				extra_rows_to_send = 1;
-				num_extra_rows--;
+		while(above_prec) {
+
+			// Calculate the number of extra rows to assign to individual processes
+			num_extra_rows = (dimension - 2) - (world_size - 1);
+
+			for (id = 1; id < world_size; id++) {
+
+				//f (flags_array[id] == 1) {}
+
+				// determine the number of extra rows to send to each child process
+				extra_rows_to_send = 0;
+				if (num_extra_rows > 0) {
+					extra_rows_to_send = 1;
+					num_extra_rows--;
+				}
+				MPI_Send(&extra_rows_to_send, 1, MPI_INT, id, send_tag, MPI_COMM_WORLD);
+				
+				// determine which rows each child process gets
+				rows = get_sub_array_rows(dimension, world_size - 1, id, extra_rows_to_send);
+				num_sub_arr_rows = rows.end - rows.start + 1;
+				if (DEBUG >= 2) printf("\nID: %d start row is %d and end row is %d\n", id, rows.start, rows.end);
+				
+				// send chunk of square array to children processes
+				sub_arr = select_chunk(dimension, square_array, rows.start, rows.end);
+				num_elements_to_send = dimension * num_sub_arr_rows;
+				MPI_Isend(&num_elements_to_send, 1, MPI_INT, id, send_tag, MPI_COMM_WORLD, &request);
+				MPI_Isend(sub_arr, num_elements_to_send, MPI_DOUBLE, id, send_tag, MPI_COMM_WORLD, &request);
+
+				// receive updated chunks from children processes
+				MPI_Recv(sub_arr, num_elements_to_send, MPI_DOUBLE, id, recv_tag, MPI_COMM_WORLD, &status);
+				
+				// place updated sub array back in square array
+				old_values_array = stitch_array(old_values_array, sub_arr, rows.start, rows.end, dimension);
+
+				MPI_Wait(&request, &status);
+
+				for (i = 1; i < dimension - 1; i++) {
+		 			for (j = 1; j < dimension - 1; j++) {
+			 			diff = (double)fabs(old_values_array[i * dimension + j] - square_array[i * dimension + j]);
+			 			// check if difference is smaller than precision
+						if (diff < precision) {
+							//printf("diff %f smaller than precision\n", diff);			
+							prec_count++;
+						} else { // reset precision counter if diff smaller than prec
+							prec_count = 0;
+							//printf("diff %f NOT smaller than precision\n", diff);	
+						}
+
+						// if difference smaller than precision for all values, stop
+						//printf("precision counter = %d", prec_count);
+						if (prec_count >= num_vals_tochange) {
+							flags_array[id-1] = 1;
+							//above_prec = 0;
+						}
+			 			//printf("old value %f - new value %f = %f\n", square_array[i * dimension + j], old_values_array[i * dimension + j], diff);
+		 			}
+		 			printf("\n");
+		 		}
+			 	//printf("From root process: is above precision: %d\n", above_prec);
+		 		
+		 		int finished_children = 0;
+		 		printf("flags array:");
+		 		above_prec = 1;
+		 		for (f = 0; f < world_size - 1; f++) {
+					printf("%d ", flags_array[f]);
+					if (flags_array[f] == 1) {
+						finished_children++;
+					}
+				}
+				if (finished_children == world_size-1) {
+					above_prec = 0;
+				}
+
+			 	// tell children if need to continue or stop relaxation
+				MPI_Isend(&above_prec, 1, MPI_INT, id, send_tag, MPI_COMM_WORLD, &request);
+
+				//MPI_Wait(&request, &status);
+
+				/*printf("old_values_array\n");
+				print_square_array(dimension, old_values_array);
+				printf("square array\n");
+				print_square_array(dimension, square_array);*/
+
+				// update values
+				double *temp_array_values = square_array;
+				square_array = old_values_array;
+				old_values_array = temp_array_values;
 			}
-			MPI_Send(&extra_rows_to_send, 1, MPI_INT, id, send_tag, MPI_COMM_WORLD);
-			rows = get_sub_array_rows(dimension, world_size - 1, id, extra_rows_to_send);
-			num_sub_arr_rows = rows.end - rows.start + 1;
-			
-			if (DEBUG >= 2) printf("\nID: %d start row is %d and end row is %d\n", id, rows.start, rows.end);
-			
-			// send portion of square array to children processes
-			sub_arr = select_chunk(dimension, square_array, rows.start, rows.end);
-			num_elements_to_send = dimension * num_sub_arr_rows;
-			MPI_Send(&num_elements_to_send, 1, MPI_INT, id, send_tag, MPI_COMM_WORLD);
-			MPI_Send(sub_arr, num_elements_to_send, MPI_DOUBLE, id, send_tag, MPI_COMM_WORLD);
-			
-			// receive updated chunks from children processes
-			MPI_Recv(sub_arr, num_elements_to_send, MPI_DOUBLE, id, recv_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-			
-			// place updated sub array back in square array
-			square_array = stitch_array(square_array, sub_arr, rows.start, rows.end, dimension);
 		}
-		
+
 		// finish and print final array
 		printf("Relaxation completed\n");
 		if (DEBUG >= 1) {
@@ -158,85 +239,97 @@ int main(int argc, char** argv) {
 	
 	// Executed by all children processes
 	else {
-		// get the number of extra rows assigned to this process
-		MPI_Recv(&extra_rows_to_recv, 1, MPI_INT, root_process, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		
-		if (DEBUG >= 2) printf("ID: %d extra_rows_to_recv %d\n\n", world_rank, extra_rows_to_recv);
-		
-		// get the number of elements in portion of array to receive
-		rows = get_sub_array_rows(dimension, world_size - 1, world_rank, extra_rows_to_recv);
-		num_sub_arr_rows = rows.end - rows.start + 1;
-		MPI_Recv(&num_elements_to_recv, 1, MPI_INT, root_process, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		
-		// receive portion of array to perform relaxation on
-		sub_arr = malloc((long unsigned int)num_elements_to_recv * sizeof(double));
-		MPI_Recv(sub_arr, num_elements_to_recv, MPI_DOUBLE, root_process, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-				
-		if (DEBUG >= 3) {
-			print_non_square_array(dimension, num_sub_arr_rows, sub_arr);
-			printf("Hello world from processor #%d out of %d child processes\n\n", world_rank, world_size - 1);
-		}
-		
-		// todo - perform relaxation on chunk here (instead of increment by 10)
-		bool is_above_precision = true;
-		int precision_counter;
-		int iteration_counter = 0;
-		double difference = 0.0;
-		int row_length = num_elements_to_recv / num_sub_arr_rows;
-		int number_of_values_to_change = ((num_sub_arr_rows-2) * (row_length-2));
-		int i, j;
-		
-		while(is_above_precision) {
-			precision_counter = 0;
-			for (i = 1; i < num_sub_arr_rows - 1; i++) {
-				for (j = 1; j < row_length - 1; j++) {
-					// value to replace
-					double old_value = sub_arr[i * row_length + j]; 
+		int continue_relaxation = 1;
 
-					// get 4 surrounding values needed to average
-					double v_left = sub_arr[i * row_length + j-1];
-					double v_right = sub_arr[i * row_length + j+1];
-					double v_up = sub_arr[(i-1) * row_length + j];
-					double v_down = sub_arr[(i+1) * row_length + j];
+		while (continue_relaxation) {
 
-					// perform the calculation
-					double new_value = (v_left + v_right + v_up + v_down) / 4;
+			// get the number of extra rows assigned to this process
+			MPI_Recv(&extra_rows_to_recv, 1, MPI_INT, root_process, send_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			
+			if (DEBUG >= 2) printf("ID: %d extra_rows_to_recv %d\n\n", world_rank, extra_rows_to_recv);
+			
+			// get the number of elements in portion of array to receive
+			rows = get_sub_array_rows(dimension, world_size - 1, world_rank, extra_rows_to_recv);
+			num_sub_arr_rows = rows.end - rows.start + 1;
+			MPI_Recv(&num_elements_to_recv, 1, MPI_INT, root_process, send_tag, MPI_COMM_WORLD, &status);
+			
+			// receive portion of array to perform relaxation on
+			sub_arr = malloc((long unsigned int)num_elements_to_recv * sizeof(double));
+			MPI_Recv(sub_arr, num_elements_to_recv, MPI_DOUBLE, root_process, send_tag, MPI_COMM_WORLD, &status);
 					
-					// replace the old value with the new one
-					sub_arr[i * row_length + j] = new_value;
-					
-					// check if difference is smaller than precision
-					difference = (double)fabs(old_value - new_value);
-					if (difference < precision) {
-						precision_counter++;
-					} else { // reset precision counter if diff smaller than prec
-						precision_counter = 0;
-					}
-
-					// if difference smaller than precision for all values, stop
-					if (precision_counter >= number_of_values_to_change) {
-						is_above_precision = false;
-					}
-					
-					// print data
-					if (iteration_counter == -1) {
-						printf("\n");
-						print_non_square_array(row_length, num_sub_arr_rows, sub_arr);
-						printf("\n");
-						print_relaxation_values_data(old_value, v_left, v_right, v_up, v_down, new_value, iteration_counter);
-					}
-				}
-				if (!(is_above_precision)) { // check at end of current array iteration
-					break;
-				}
+			if (DEBUG >= 3) {
+				print_non_square_array(dimension, num_sub_arr_rows, sub_arr);
+				printf("Hello world from processor #%d out of %d child processes\n\n", world_rank, world_size - 1);
 			}
-			iteration_counter++;
+			
+			// todo - perform relaxation on chunk here (instead of increment by 10)
+			int is_above_precision = 1;
+			int precision_counter;
+			int iteration_counter = 0;
+			double difference = 0.0;
+			int row_length = num_elements_to_recv / num_sub_arr_rows;
+			int number_of_values_to_change = ((num_sub_arr_rows-2) * (row_length-2));
+			int i, j;
+			
+			while(is_above_precision) {
+				precision_counter = 0;
+				for (i = 1; i < num_sub_arr_rows - 1; i++) {
+					for (j = 1; j < row_length - 1; j++) {
+						// value to replace
+						double old_value = sub_arr[i * row_length + j]; 
+
+						// get 4 surrounding values needed to average
+						double v_left = sub_arr[i * row_length + j-1];
+						double v_right = sub_arr[i * row_length + j+1];
+						double v_up = sub_arr[(i-1) * row_length + j];
+						double v_down = sub_arr[(i+1) * row_length + j];
+
+						// perform the calculation
+						double new_value = (v_left + v_right + v_up + v_down) / 4;
+						
+						// replace the old value with the new one
+						sub_arr[i * row_length + j] = new_value;
+						
+						// check if difference is smaller than precision
+						difference = (double)fabs(old_value - new_value);
+						if (difference < precision) {
+							precision_counter++;
+						} else { // reset precision counter if diff smaller than prec
+							precision_counter = 0;
+						}
+
+						// if difference smaller than precision for all values, stop
+						if (precision_counter >= number_of_values_to_change) {
+							is_above_precision = 0;
+						}
+						
+						// print data
+						if (iteration_counter == -1) {
+							printf("\n");
+							print_non_square_array(row_length, num_sub_arr_rows, sub_arr);
+							printf("\n");
+							print_relaxation_values_data(old_value, v_left, v_right, v_up, v_down, new_value, iteration_counter);
+						}
+					}
+					if (!(is_above_precision)) { // check at end of current array iteration
+						break;
+					}
+				}
+				iteration_counter++;
+			}
+			
+			// send chunk back to root process
+			MPI_Send(sub_arr, num_elements_to_recv, MPI_DOUBLE, root_process, recv_tag, MPI_COMM_WORLD);
+
+			// wait for root process to tell us to continue relaxation or not
+			MPI_Recv(&continue_relaxation, 1, MPI_INT, root_process, send_tag, MPI_COMM_WORLD, &status);
+
+			printf("From child process %d - continue_relaxation: %d\n", world_rank, continue_relaxation);
+
 		}
-		
-		// send chunk back to root process
-		MPI_Send(sub_arr, num_elements_to_recv, MPI_DOUBLE, root_process, recv_tag, MPI_COMM_WORLD);
 	}
 	
 	// Clean up the MPI environment.
     MPI_Finalize();
+    return 0;
 }
