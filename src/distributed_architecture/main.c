@@ -23,16 +23,13 @@
 #include "array_helpers.h"
 #include "print_helpers.h"
 
-#define send_tag 1
-#define recv_tag 2
+#define send_tag 1001
+#define recv_tag 1002
 
 int DEBUG;
 struct sub_arr_rows {
 	int start;
 	int end;
-};
-struct children_status {
-	int finished;
 };
 
 
@@ -125,16 +122,14 @@ int main(int argc, char** argv) {
 		int prec_count = 0;
 		int num_vals_tochange = (dimension - 2) * (dimension - 2);
 		int above_prec = 1;
-		int returned_is_within_prec = 1;
-		int tell_continue = 1;
 
-		int *flags_array = malloc((long unsigned int)(world_size-1) * sizeof(int));
+		// array of flags used to keep track of which child process finished
 		int f;
+		int *flags_array = malloc((long unsigned int)(world_size-1) * sizeof(int));
 		for (f = 0; f < world_size - 1; f++) {
 			flags_array[f] = 0;
 		}
 
-		
 		if (DEBUG >= 1) {
 			print_square_array(dimension, square_array); 
 			printf("\n");
@@ -145,11 +140,10 @@ int main(int argc, char** argv) {
 			// Calculate the number of extra rows to assign to individual processes
 			num_extra_rows = (dimension - 2) - (world_size - 1);
 
+			// Manage each child process
 			for (id = 1; id < world_size; id++) {
 
-				//f (flags_array[id] == 1) {}
-
-				// determine the number of extra rows to send to each child process
+				// determine the number of extra rows (if any) to send to each child process
 				extra_rows_to_send = 0;
 				if (num_extra_rows > 0) {
 					extra_rows_to_send = 1;
@@ -174,6 +168,7 @@ int main(int argc, char** argv) {
 				// place updated sub array back in square array
 				old_values_array = stitch_array(old_values_array, sub_arr, rows.start, rows.end, dimension);
 
+				// wait for entire array to be reconstructed
 				MPI_Wait(&request, &status);
 
 				for (i = 1; i < dimension - 1; i++) {
@@ -196,26 +191,28 @@ int main(int argc, char** argv) {
 						}
 			 			//printf("old value %f - new value %f = %f\n", square_array[i * dimension + j], old_values_array[i * dimension + j], diff);
 		 			}
-		 			printf("\n");
+		 			//printf("\n");
 		 		}
 			 	//printf("From root process: is above precision: %d\n", above_prec);
 		 		
 		 		int finished_children = 0;
-		 		printf("flags array:");
+		 		//printf("flags array:");
 		 		above_prec = 1;
 		 		for (f = 0; f < world_size - 1; f++) {
-					printf("%d ", flags_array[f]);
+					//printf("flags array for process id %d (index %d) = %d\n", id, f, flags_array[f]);
 					if (flags_array[f] == 1) {
 						finished_children++;
 					}
 				}
-				if (finished_children == world_size-1) {
+								
+				// check that all children finished
+				if (finished_children == world_size - 1) {
 					above_prec = 0;
+					// tell children if need to continue or stop relaxation
 				}
 
-			 	// tell children if need to continue or stop relaxation
 				MPI_Isend(&above_prec, 1, MPI_INT, id, send_tag, MPI_COMM_WORLD, &request);
-
+				
 				//MPI_Wait(&request, &status);
 
 				/*printf("old_values_array\n");
@@ -234,7 +231,7 @@ int main(int argc, char** argv) {
 		printf("Relaxation completed\n");
 		if (DEBUG >= 1) {
 			print_square_array(dimension, square_array);
-		}
+		}		
 	}
 	
 	// Executed by all children processes
@@ -268,7 +265,7 @@ int main(int argc, char** argv) {
 			int iteration_counter = 0;
 			double difference = 0.0;
 			int row_length = num_elements_to_recv / num_sub_arr_rows;
-			int number_of_values_to_change = ((num_sub_arr_rows-2) * (row_length-2));
+			int number_of_values_to_change = ((num_sub_arr_rows - 2) * (row_length - 2));
 			int i, j;
 			
 			while(is_above_precision) {
@@ -330,6 +327,7 @@ int main(int argc, char** argv) {
 	}
 	
 	// Clean up the MPI environment.
+	//exit(0);
     MPI_Finalize();
     return 0;
 }
