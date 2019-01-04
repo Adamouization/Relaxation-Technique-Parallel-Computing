@@ -8,7 +8,7 @@
  * Local usage: 
  * 1) "mpicc -Wall -Wextra -Wconversion main.c -o distributed_relaxation -lm"
  * 2) "mpirun -np <num_processes> ./distributed_relaxation -d <dimension> -p <precision> -debug <debug mode>"
- * example: mpirun -np 4 ./distributed_relaxation -d 15 -p 0.01 -debug 1
+ * example: "mpirun -quiet -np 4 ./distributed_relaxation -d 15 -p 0.1 -debug 1"
  * 
  * Author: Adam Jaamour
  * Date: 07-Jan-2019
@@ -42,6 +42,7 @@ int main(int argc, char** argv) {
 	double* sub_arr; // chunk of main square array with specific rows only
 	struct sub_arr_rows rows;
 	double precision;
+	double start_MPI, end_MPI, elapsed_time;
 	MPI_Status status;
 	MPI_Request request;
 
@@ -94,6 +95,9 @@ int main(int argc, char** argv) {
 		printf ("Error starting MPI program\n");
 		MPI_Abort(MPI_COMM_WORLD, rc);
 	}
+	
+	// start recording time
+	start_MPI = MPI_Wtime();
 	
 	// Get the number of processes and the rank of the process
     MPI_Comm_size(MPI_COMM_WORLD, &world_size); 
@@ -228,10 +232,15 @@ int main(int argc, char** argv) {
 		}
 
 		// finish and print final array
-		printf("Relaxation completed\n");
+		printf("Relaxation successfully completed using %d processes (1 root process and %d children)\n", world_size, world_size-1);
 		if (DEBUG >= 1) {
 			print_square_array(dimension, square_array);
 		}		
+		
+		// calculate parallel tasks runtime only
+		end_MPI = MPI_Wtime();
+		elapsed_time = end_MPI - start_MPI;
+		printf("Total time = %f seconds\n\n", elapsed_time);
 	}
 	
 	// Executed by all children processes
@@ -321,13 +330,15 @@ int main(int argc, char** argv) {
 			// wait for root process to tell us to continue relaxation or not
 			MPI_Recv(&continue_relaxation, 1, MPI_INT, root_process, send_tag, MPI_COMM_WORLD, &status);
 
-			printf("From child process %d - continue_relaxation: %d\n", world_rank, continue_relaxation);
+			//printf("From child process %d - continue_relaxation: %d\n", world_rank, continue_relaxation);
 
 		}
 	}
 	
+	// exit program ungracefully
+	exit(0);
+	
 	// Clean up the MPI environment.
-	//exit(0);
     MPI_Finalize();
     return 0;
 }
