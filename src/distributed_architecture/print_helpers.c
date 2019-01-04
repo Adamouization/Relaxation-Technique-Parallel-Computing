@@ -17,7 +17,7 @@
  */
 void print_parameters(int dimension, int num_processes, double precision) {
 	printf("\nArray dimension: %d\n", dimension);
-	printf("Number of processes: %d\n", num_processes);
+	printf("World size: %d\n", num_processes);
 	printf("Precision: %f\n", precision);
 	printf("\n");
 }

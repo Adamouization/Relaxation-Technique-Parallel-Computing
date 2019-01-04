@@ -39,7 +39,7 @@ double* initialise_square_array(int dim) {
 	// populate the array with random doubles
 	for (i = 0; i < dim; i++) {
 		for (j = 0; j < dim; j++) {
-			sq_array[i * dim + j] = (double)(rand() % 100);
+			sq_array[i * dim + j] = (double)(rand() % 10);
 		}
 	}
 

@@ -82,7 +82,7 @@ void initialise_square_array(void) {
 		for (j = 0; j < dim; j++) {
 			//square_array[i][j] = (i*dim) + (j*j*j*j) + 10;
 			//square_array[i][j] = double_random(1.0, 10.0);
-			square_array[i][j] = (double)(rand() % 100);
+			square_array[i][j] = (double)(rand() % 10);
 		}
 	}
 }

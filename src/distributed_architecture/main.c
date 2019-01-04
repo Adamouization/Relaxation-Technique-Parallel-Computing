@@ -37,16 +37,24 @@ int main(int argc, char** argv) {
 
 	// Variables
 	int dimension, num_elements_to_send, num_elements_to_recv, num_sub_arr_rows, 
-		num_extra_rows, extra_rows_to_send, extra_rows_to_recv;
-	int root_process, world_size, world_rank, rc;
-	double* sub_arr; // chunk of main square array with specific rows only
+		num_extra_rows, extra_rows_to_send, extra_rows_to_recv, iteration_counter,
+		row_length, finished_children;
+	int id, f, i, j;
+	int precision_counter = 0;
+	int is_above_precision = 1;
+	int continue_relaxation = 1;
+	double precision, difference;
 	struct sub_arr_rows rows;
-	double precision;
+	double *square_array;
+	double *old_values_array;
+	double *sub_arr;
+	int *flags_array;
+	int root_process, world_size, world_rank, rc;
 	double start_MPI, end_MPI, elapsed_time;
 	MPI_Status status;
 	MPI_Request request;
-
-	// Default values
+	
+	// Default values (if no command line arguments are correctly passed)
 	DEBUG = 1;
 	dimension = 100;
 	precision = 0.01f;
@@ -96,7 +104,7 @@ int main(int argc, char** argv) {
 		MPI_Abort(MPI_COMM_WORLD, rc);
 	}
 	
-	// start recording time
+	// Start recording time
 	start_MPI = MPI_Wtime();
 	
 	// Get the number of processes and the rank of the process
@@ -116,20 +124,16 @@ int main(int argc, char** argv) {
 	}
 	
 	// Executed by root process only
-	if (world_rank == root_process) {		
-		print_parameters(dimension, world_size, precision);
-		double *square_array = initialise_square_array(dimension);
-		double *old_values_array = initialise_square_array(dimension);
-		int id;
-		int i, j;
-		double diff;
-		int prec_count = 0;
-		int num_vals_tochange = (dimension - 2) * (dimension - 2);
-		int above_prec = 1;
+	if (world_rank == root_process) {
+		// initialise array values
+		square_array = initialise_square_array(dimension);
+		old_values_array = initialise_square_array(dimension);
 
-		// array of flags used to keep track of which child process finished
-		int f;
-		int *flags_array = malloc((long unsigned int)(world_size-1) * sizeof(int));
+		// print initial parameters for log information
+		print_parameters(dimension, world_size, precision);
+
+		// array of flags used to keep track of which child process was told to finish
+		flags_array = malloc((long unsigned int)(world_size-1) * sizeof(int));
 		for (f = 0; f < world_size - 1; f++) {
 			flags_array[f] = 0;
 		}
@@ -139,7 +143,7 @@ int main(int argc, char** argv) {
 			printf("\n");
 		}
 		
-		while(above_prec) {
+		while(is_above_precision) {
 
 			// Calculate the number of extra rows to assign to individual processes
 			num_extra_rows = (dimension - 2) - (world_size - 1);
@@ -172,57 +176,41 @@ int main(int argc, char** argv) {
 				// place updated sub array back in square array
 				old_values_array = stitch_array(old_values_array, sub_arr, rows.start, rows.end, dimension);
 
-				// wait for entire array to be reconstructed
+				// check if we went within precision
 				MPI_Wait(&request, &status);
-
 				for (i = 1; i < dimension - 1; i++) {
 		 			for (j = 1; j < dimension - 1; j++) {
-			 			diff = (double)fabs(old_values_array[i * dimension + j] - square_array[i * dimension + j]);
-			 			// check if difference is smaller than precision
-						if (diff < precision) {
-							//printf("diff %f smaller than precision\n", diff);			
-							prec_count++;
-						} else { // reset precision counter if diff smaller than prec
-							prec_count = 0;
-							//printf("diff %f NOT smaller than precision\n", diff);	
+			 			difference = (double)fabs(old_values_array[i * dimension + j] - square_array[i * dimension + j]);
+						if (difference < precision) { // check if difference is smaller than precision for a single value
+							precision_counter++;
+						} else {
+							precision_counter = 0;
 						}
 
-						// if difference smaller than precision for all values, stop
-						//printf("precision counter = %d", prec_count);
-						if (prec_count >= num_vals_tochange) {
+						// if difference is smaller than precision for all values, thne we are within precision
+						if (precision_counter >= ((dimension - 2) * (dimension - 2))) {
 							flags_array[id-1] = 1;
-							//above_prec = 0;
 						}
-			 			//printf("old value %f - new value %f = %f\n", square_array[i * dimension + j], old_values_array[i * dimension + j], diff);
+			 			if (DEBUG >= 3) printf("old value %f - new value %f = %f\n", square_array[i * dimension + j], old_values_array[i * dimension + j], difference);
 		 			}
-		 			//printf("\n");
 		 		}
-			 	//printf("From root process: is above precision: %d\n", above_prec);
+			 	if (DEBUG >= 3) printf("From root process: is above precision: %d\n", is_above_precision);
 		 		
-		 		int finished_children = 0;
-		 		//printf("flags array:");
-		 		above_prec = 1;
+				// check that all children finished 
+		 		finished_children = 0;
+		 		is_above_precision = 1;
 		 		for (f = 0; f < world_size - 1; f++) {
-					//printf("flags array for process id %d (index %d) = %d\n", id, f, flags_array[f]);
 					if (flags_array[f] == 1) {
 						finished_children++;
 					}
+					if (DEBUG >= 3) printf("flags array for process id %d (index %d) = %d\n", id, f, flags_array[f]);
 				}
-								
-				// check that all children finished
 				if (finished_children == world_size - 1) {
-					above_prec = 0;
-					// tell children if need to continue or stop relaxation
+					is_above_precision = 0;
 				}
 
-				MPI_Isend(&above_prec, 1, MPI_INT, id, send_tag, MPI_COMM_WORLD, &request);
-				
-				//MPI_Wait(&request, &status);
-
-				/*printf("old_values_array\n");
-				print_square_array(dimension, old_values_array);
-				printf("square array\n");
-				print_square_array(dimension, square_array);*/
+				// tell children if need to continue or stop relaxation
+				MPI_Isend(&is_above_precision, 1, MPI_INT, id, send_tag, MPI_COMM_WORLD, &request);
 
 				// update values
 				double *temp_array_values = square_array;
@@ -245,8 +233,6 @@ int main(int argc, char** argv) {
 	
 	// Executed by all children processes
 	else {
-		int continue_relaxation = 1;
-
 		while (continue_relaxation) {
 
 			// get the number of extra rows assigned to this process
@@ -268,15 +254,12 @@ int main(int argc, char** argv) {
 				printf("Hello world from processor #%d out of %d child processes\n\n", world_rank, world_size - 1);
 			}
 			
-			// todo - perform relaxation on chunk here (instead of increment by 10)
-			int is_above_precision = 1;
-			int precision_counter;
-			int iteration_counter = 0;
-			double difference = 0.0;
-			int row_length = num_elements_to_recv / num_sub_arr_rows;
-			int number_of_values_to_change = ((num_sub_arr_rows - 2) * (row_length - 2));
-			int i, j;
+			is_above_precision = 1;
+			iteration_counter = 0;
+			difference = 0.0;
+			row_length = num_elements_to_recv / num_sub_arr_rows;
 			
+			// perform relaxation
 			while(is_above_precision) {
 				precision_counter = 0;
 				for (i = 1; i < num_sub_arr_rows - 1; i++) {
@@ -304,13 +287,13 @@ int main(int argc, char** argv) {
 							precision_counter = 0;
 						}
 
-						// if difference smaller than precision for all values, stop
-						if (precision_counter >= number_of_values_to_change) {
+						// if difference smaller than precision for all values to relax, stop
+						if (precision_counter >= ((num_sub_arr_rows - 2) * (row_length - 2))) {
 							is_above_precision = 0;
 						}
 						
-						// print data
-						if (iteration_counter == -1) {
+						// print current iteration data
+						if (DEBUG >= 3 && iteration_counter == -1) {
 							printf("\n");
 							print_non_square_array(row_length, num_sub_arr_rows, sub_arr);
 							printf("\n");
@@ -329,13 +312,12 @@ int main(int argc, char** argv) {
 
 			// wait for root process to tell us to continue relaxation or not
 			MPI_Recv(&continue_relaxation, 1, MPI_INT, root_process, send_tag, MPI_COMM_WORLD, &status);
-
-			//printf("From child process %d - continue_relaxation: %d\n", world_rank, continue_relaxation);
+			if (DEBUG >= 3) printf("From child process %d - continue_relaxation: %d\n", world_rank, continue_relaxation);
 
 		}
 	}
 	
-	// exit program ungracefully
+	// exit program ungracefully (use "mpirun -quiet")
 	exit(0);
 	
 	// Clean up the MPI environment.
