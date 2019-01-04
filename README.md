@@ -35,8 +35,9 @@ The background is a method called relaxation technique, a solution to differenti
 
 #### Copying files to/from Balena
 
-* from BUCS to Balena: `cp $BUCSHOME/dos/year\ 4/CM30225/Parallel-Computing-Relaxion-Shared-Memory/<file> /home/o/aj645/scratch/cw1-shared-architecture/`
-* from Balena to BUCS: `cp /home/o/aj645/scratch/cw1-shared-architecture/<file> $BUCSHOME/dos/year\ 4/CM30225/Parallel-Computing-Relaxion-Shared-Memory/`
+* from BUCS to Balena: `cp $BUCSHOME/dos/year\ 4/Relaxation-Technique-Parallel-Computing/src/<file> /home/o/aj645/scratch/cw2-distributed-architecture/`
+
+* from Balena to BUCS: `cp /home/o/aj645/scratch/cw2-distributed-architecture/<file> $BUCSHOME/dos/year\ 4/Relaxation-Technique-Parallel-Computing`
 
 ## Report
 
