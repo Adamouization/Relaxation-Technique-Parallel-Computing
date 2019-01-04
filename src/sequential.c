@@ -26,6 +26,7 @@ void print_relaxation_data(double old, double l, double r, double u, double d, d
 // Global variables
 bool DEBUG = false;				// print data to the command line
 #define dim 15					// square array dimensions
+#define SEED 1000
 struct timeval time1, time2;	// structure used to calculate program time
 double **square_array;			// global square array of double
 
@@ -63,6 +64,7 @@ int main() {
  * looking at 1D arrays of doubles.
  */
 void initialise_square_array(void) {
+	srand(SEED);
 	int i, j;
 	
 	// allocate space for a 1D array of double pointers.
