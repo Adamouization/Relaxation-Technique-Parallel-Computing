@@ -13,9 +13,6 @@
  
  
  void print_square_array(int dimension, double* sq_array);
+  
  
- 
- void print_non_square_array(int dim_x, int dim_y, double* arr);
- 
- 
- void print_relaxation_values_data(double old, double l, double r, double u, double d, double new, int count);
+ void print_relaxation_values_data(double old, double l, double r, double u, double d, double new);

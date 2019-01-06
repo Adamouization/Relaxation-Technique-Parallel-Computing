@@ -142,7 +142,8 @@ int main(int argc, char *argv[]) {
 		
 		// print initial parameters for log information
 		print_parameters(dimension, world_size, precision);
-		if (DEBUG >= 0) {
+		if (DEBUG >= 3) {
+			printf("Initial square array to relax:\n");
 			print_square_array(dimension, square_array); 
 			printf("\n");
 		}
@@ -182,7 +183,7 @@ int main(int argc, char *argv[]) {
 					// assign end row using the row index (minus 1)
 					end_row = start_row + (height - 1);
 					
-					if (DEBUG >= 2) printf("\nProcess ID %d: start row = %d - end row = %d\n", id, start_row, end_row);
+					if (DEBUG >= 1) printf("Process ID %d: start row = %d - end row = %d\n\n", id, start_row, end_row);
 					
 					// tell children processes how many elements from the original array they will receive in a non-blocking send
 					num_elements_to_send = dimension * height;
@@ -201,6 +202,7 @@ int main(int argc, char *argv[]) {
 
 			// wait for children processes to have received their sub arrays
 			MPI_Wait(&request, &status);
+			if (DEBUG >= 4) printf("\nIteration number %d\n\n", iteration_count);
 
 			// check with each process to see if they went out of precision on this iteration
 			int returnedWP = 0;
@@ -243,11 +245,17 @@ int main(int argc, char *argv[]) {
 			// free up allocated space used for the temporary array
 			free(temp_arr);
 		}
+		
+		printf("Relaxation successfully completed in %d iterations using %d processes (1 root process and %d children)\n\n", iteration_count, world_size, num_children_processes);
+		if (DEBUG >= 3){
+			printf("Final relaxed square array:\n");
+			print_square_array(dimension, square_array);
+			printf("\n");
+		}
 				
 		// calculate elapsed time for parallel tasks only
 		end_MPI = MPI_Wtime();
 		elapsed_time = end_MPI - start_MPI;
-		printf("Relaxation successfully completed in %d iterations using %d processes (1 root process and %d children)\n", iteration_count, world_size, num_children_processes);
 		printf("Total time = %f seconds\n\n", elapsed_time);
 
 		// free up allocated space used for sub arrays and wait for all children process to gracefully finish
@@ -265,6 +273,9 @@ int main(int argc, char *argv[]) {
 
 		// get the number of elements from the main array to receive
 		MPI_Recv(&num_sub_arr_elements, 1, MPI_INT, root_process_id, SEND_TAG, MPI_COMM_WORLD, &status);
+		if (DEBUG >= 2) {
+			printf("Hello world from processor #%d out of %d children processes\n\n", world_rank, world_size - 1);
+		}
 		
 		// create 2 arrays to receive the current values and store the new values while relaxing
 		sub_arr = create_new_array(num_sub_arr_elements);
@@ -337,6 +348,12 @@ int main(int argc, char *argv[]) {
 					difference = (double)fabs(sub_arr[i * dimension + j] - new_value);
 					if (difference > precision && withinPrecision == 1) {
 						withinPrecision = 0; // need to iterate again
+					}
+					
+					// print current iteration data
+					if (DEBUG >= 4) {
+						printf("\n");
+						print_relaxation_values_data(sub_arr[i * dimension + j], v_left, v_right, v_up, v_down, new_value);
 					}
 				}
 			}
