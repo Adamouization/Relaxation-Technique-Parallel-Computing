@@ -1,0 +1,23 @@
+
+Array dimension: 512
+World size: 32
+Precision: 0.001000
+
+Relaxation successfully completed in 77566 iterations using 32 processes (1 root process and 31 children)
+
+Total time = 13.136245 seconds
+
+
+########################################################################
+----------------------! Balena Job Details !----------------------------
+
+JobID          : 1844830
+No. of nodes   : 2
+No. of CPUs    : 32
+Timelimit      : 00:10:00
+Elapsed time   : 00:00:18
+Nodelist       : node-sw-[163-164]
+Energy Used    : 6300.00 Joules
+
+########################################################################
+

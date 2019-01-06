@@ -1,0 +1,22 @@
+
+Array dimension: 4096
+World size: 48
+Precision: 0.010000
+
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** STEP 1844706.0 ON node-sw-160 CANCELLED AT 2019-01-06T16:47:57 DUE TO TIME LIMIT ***
+slurmstepd: error: *** JOB 1844706 ON node-sw-160 CANCELLED AT 2019-01-06T16:47:57 DUE TO TIME LIMIT ***
+
+########################################################################
+----------------------! Balena Job Details !----------------------------
+
+JobID          : 1844706
+No. of nodes   : 3
+No. of CPUs    : 48
+Timelimit      : 00:10:00
+Elapsed time   : 00:10:04
+Nodelist       : node-sw-[160-162]
+Energy Used    : 349832.13 Joules
+
+########################################################################
+
