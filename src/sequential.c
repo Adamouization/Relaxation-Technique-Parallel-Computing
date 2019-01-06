@@ -36,7 +36,7 @@ double **square_array;			// global square array of double
  */
 int main() {
 	// initialise values
-	double precision = 0.1f; // precision to perform relaxation at
+	double precision = 0.0000001; // precision to perform relaxation at
 	initialise_square_array();
 	print_initial_data(precision);
 
@@ -147,6 +147,9 @@ void relaxation(double precision) {
 			}
 		}
 		iteration_counter++;
+		/*printf("\n\n");
+		print_array();
+		printf("\n\n");*/
 	}
 }
 

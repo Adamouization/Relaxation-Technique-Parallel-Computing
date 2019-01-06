@@ -15,13 +15,7 @@
  double* initialise_square_array(int dim);
  
  
- double* create_new_array(int dim_x, int dim_y);
- 
- 
- struct sub_arr_rows get_sub_array_rows(int dim, int num_of_children, int rank, int extra_rows);
- 
+ double* create_new_array(int num_elements);
+  
  
  double* stitch_array(double* sq_array, double* chunk_array, int start, int end, int dimension);
- 
- 
- double* select_chunk(int dimension, double* square_array, int start_row, int end_row);

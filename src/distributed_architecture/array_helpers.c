@@ -15,11 +15,6 @@
 
 #define SEED 1000
 
-struct sub_arr_rows {
-	int start;
-	int end;
-};
-
 
 /*
  * Initialises a square array by creating an 1D array of doubles while keeping 
@@ -48,74 +43,20 @@ double* initialise_square_array(int dim) {
 
 
 /*
- * Initialises (doesn't populate) an non-square array of dimensions X times Y by 
- * creating an 1D array of doubles while keeping track of rows.
+ * Initialises (doesn't populate) an non-square array of dimensions X times Y = 
+ * num_elements, by creating an 1D array of doubles while keeping track of rows.
  */
-double* create_new_array(int dim_x, int dim_y) {
-	long unsigned int dimension_x = (long unsigned int) dim_x;
-	long unsigned int dimension_y = (long unsigned int) dim_y;
+double* create_new_array(int num_elements) {
+	long unsigned int elemenents = (long unsigned int) num_elements;
 	double *array;
  
 	// allocate space for a 1D array of double pointers.
-	array = malloc(dimension_x * dimension_y * sizeof(double));
+	array = malloc(elemenents * sizeof(double));
 	check_double_malloc(array);
 	
 	return array;
 }
 
-
-/*
- * Returns the number of the start and end rows from the initial square array 
- * used to cut it into a sub array that is sent to the childen processes for
- * calculations.
- */
-struct sub_arr_rows get_sub_array_rows(int dim, int num_of_children, int rank, int extra_rows) {
-	struct sub_arr_rows rows;
-	int height, processable_dim;
-	
-	processable_dim = dim - 2;
-	height = (int)floor(processable_dim / num_of_children) + extra_rows;
-	rows.start = (rank - 1) * height;
-	rows.end = rows.start + height + 1;
-
-	/*printf("process ID = %d \n processable_dim = %d \n total number of child processes = %d \n array_height = %d \n rest = %d \n start row = %d \n end row = %d \n\n", 
-		rank, processable_dim, num_of_children, height, extra_rows, rows.start, rows.end);*/
-	
-	/*if (rows.start > processable_dim) {
-		rows.start = processable_dim + 1;
-		rows.end = dim - 1;
-	}
-	
-	if (rows.end > dim - 1) {
-		rows.end = dim - 1;
-	}*/
-	
-	if (rank == num_of_children) {
-		rows.start = dim - height;
-		rows.end = dim - 1;
-	}
-	
-	return rows;
-}
-
-
-/*
- * Returns a portion of a square array using the start row and the end row to
- * select from.
- */
-double* select_chunk(int dim, double* sq_array, int start_row, int end_row) {
-	int diff = end_row - start_row + 1;
-	double* chunk_array = create_new_array(diff,dim);
-	int i, j;
-	
-	for (i = start_row; i < start_row + diff; i++) {
-		for (j = 0; j < dim; j++) {
-			chunk_array[(i-start_row) * dim + j] = sq_array[i* dim + j];
-		}
-	}
-	
-	return chunk_array;
-}
 
 
 /*
