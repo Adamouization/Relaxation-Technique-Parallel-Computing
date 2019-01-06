@@ -10,7 +10,6 @@
  
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include "array_helpers.h"
 
 #define SEED 1000

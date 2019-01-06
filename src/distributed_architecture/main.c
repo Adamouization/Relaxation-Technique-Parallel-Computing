@@ -8,7 +8,7 @@
  * Local usage: 
  * 1) "mpicc -Wall -Wextra -Wconversion main.c -o distributed_relaxation"
  * 2) "mpirun -np <num_processes> ./distributed_relaxation -d <dimension> -p <precision> -debug <debug mode>"
- * example: "mpirun -np 6 ./distributed_relaxation -d 15 -p 0.1 -debug 2"
+ * example: "mpirun -np 4 ./distributed_relaxation -d 15 -p 0.1 -debug 1"
  * 
  * Author: Adam Jaamour
  * Date: 07-Jan-2019

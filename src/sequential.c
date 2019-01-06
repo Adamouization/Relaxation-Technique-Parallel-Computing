@@ -25,7 +25,7 @@ void print_relaxation_data(double old, double l, double r, double u, double d, d
 
 // Global variables
 bool DEBUG = false;				// print data to the command line
-#define dim 15					// square array dimensions
+#define dim 2048					// square array dimensions
 #define SEED 1000
 struct timeval time1, time2;	// structure used to calculate program time
 double **square_array;			// global square array of double
@@ -36,7 +36,7 @@ double **square_array;			// global square array of double
  */
 int main() {
 	// initialise values
-	double precision = 0.0000001; // precision to perform relaxation at
+	double precision = 0.01; // precision to perform relaxation at
 	initialise_square_array();
 	print_initial_data(precision);
 
@@ -44,11 +44,11 @@ int main() {
 	gettimeofday(&time1, NULL);	// start recording time
 	relaxation(precision);
 	gettimeofday(&time2, NULL);	// stop recording time
-	printf ("Total time = %f seconds\n", 
+	printf ("Total time = %f seconds\n\n", 
 		(double) (time2.tv_usec - time1.tv_usec) / 1000000 +
 		(double) (time2.tv_sec - time1.tv_sec));
 	
-	if (true) {
+	if (DEBUG) {
 		printf("\n------------------------ Final square array\n");
 		print_array();
 	}
@@ -170,9 +170,9 @@ void check_malloc(void) {
  * Prints the initial data values used to initiate the program.
  */
 void print_initial_data(double precision) {
-	printf("Array dimension: %d\n", dim);
-	printf("Precision: %f\n", precision);
-	if (true) {
+	printf("\nArray dimension: %d\n", dim);
+	printf("Precision: %f\n\n", precision);
+	if (DEBUG) {
 		printf("Initial square array:\n");
 		print_array();
 	}
