@@ -48,7 +48,7 @@ int main() {
 		(double) (time2.tv_usec - time1.tv_usec) / 1000000 +
 		(double) (time2.tv_sec - time1.tv_sec));
 	
-	if (true) {
+	if (DEBUG) {
 		printf("\n------------------------ Final square array\n");
 		print_array();
 	}
@@ -147,9 +147,6 @@ void relaxation(double precision) {
 			}
 		}
 		iteration_counter++;
-		printf("\n\n");
-		print_array();
-		printf("\n\n");
 	}
 }
 
@@ -172,7 +169,7 @@ void check_malloc(void) {
 void print_initial_data(double precision) {
 	printf("\nArray dimension: %d\n", dim);
 	printf("Precision: %f\n\n", precision);
-	if (true) {
+	if (DEBUG) {
 		printf("Initial square array:\n");
 		print_array();
 	}
