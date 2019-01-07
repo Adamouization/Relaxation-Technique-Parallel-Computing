@@ -39,9 +39,9 @@ int main(int argc, char *argv[]) {
 	
 	// Variables
 	int dimension, num_elements_to_send, num_elements_to_receive, 
-		num_sub_arr_elements, average_height, extra_rows, initial_end_row, 
+		num_sub_arr_elements, average_height, extra_rows, child_is_under_precision, 
 		extra_rows_counter, height, num_children_processes, iteration_count, 
-		withinPrecision, num_sub_arr_rows, prev_child_id, next_child_id;
+		is_under_precision, num_sub_arr_rows, prev_child_id, next_child_id;
 	int id, rc, world_rank, root_process_id, world_size, start_row, end_row;
 	int i, j;
 	double *square_array;
@@ -57,15 +57,15 @@ int main(int argc, char *argv[]) {
 	double start_MPI, end_MPI, elapsed_time;
 
 	// Default values (if no command line arguments are correctly passed)
-	DEBUG = 1;
+	DEBUG = 0;
 	dimension = 100;
 	precision = 0.01f;
 
-	// Read and Parse command line input
+	// Read and Parse command line input if there are any
 	int arg;
 	for (arg = 1; arg < argc; arg++) {
 		// parse square array dimension
-		if (strcmp(argv[arg], "-d") == 0) {
+		if (strcmp(argv[arg], "-d") == 0) { // compare first argument string with needed flag
 			if (arg + 1 <= argc - 1) { // ensure there are more arguments
 				if (atoi(argv[arg + 1]) > 0) {
 					arg++;
@@ -129,12 +129,10 @@ int main(int argc, char *argv[]) {
 	num_children_processes = world_size - 1;
 	average_height = (int)floor((dimension - 2) / num_children_processes) + 2;
 	extra_rows = (dimension - 2) % num_children_processes;
-	initial_end_row = average_height - 1; // Set end row of master thread, decrement for index (row 1 -> index 0)
 	
 
 	// Executed by root process only
     if (world_rank == root_process_id) {
-		
 		first_iteration = true;
 		
 		// initialise array values
@@ -148,23 +146,20 @@ int main(int argc, char *argv[]) {
 			printf("\n");
 		}
 
+		// initial boolean values
 		iteration_count = 0;
-		withinPrecision = 0;
+		is_under_precision = 0;
 
 		// array used to keep track of the start row, end row and total number 
 		// of elements for each of the children's sub array
 		struct sub_arr_rows rows_arr[num_children_processes]; 
 
-		while (!withinPrecision) {
-			
-			withinPrecision = 1;
-			iteration_count++;
-			
+		while (!is_under_precision) {
 			// send a portion of the array to each child process only once
 			if (first_iteration) {
 				
 				extra_rows_counter = extra_rows;
-				end_row = initial_end_row;
+				end_row = average_height - 1; // (minus 1 for index of array)
 
 				// determine portions of the original square array to send to children processes and send them
 				for (id = 1; id < world_size; id++) {
@@ -199,28 +194,30 @@ int main(int argc, char *argv[]) {
 				}
 				first_iteration = false;
 			} 
+			iteration_count++;
 
 			// wait for children processes to have received their sub arrays
 			MPI_Wait(&request, &status);
 			if (DEBUG >= 4) printf("\nIteration number %d\n\n", iteration_count);
 
 			// check with each process to see if they went out of precision on this iteration
-			int returnedWP = 0;
+			is_under_precision = 1;
+			child_is_under_precision = 0;
 			for (id = 1; id < world_size; id++) {
-				MPI_Recv(&returnedWP, 1, MPI_INT, id, RECV_TAG, MPI_COMM_WORLD, &status);
-				if (!returnedWP && withinPrecision) {
-					withinPrecision = 0;
+				MPI_Recv(&child_is_under_precision, 1, MPI_INT, id, RECV_TAG, MPI_COMM_WORLD, &status);
+				if (!child_is_under_precision && is_under_precision) {
+					is_under_precision = 0;
 				}
 			}
 
 			// tell children processes to continue or to stop relaxing their portion of the array
 			for (id = 1; id < world_size; id++) {
-				MPI_Isend(&withinPrecision, 1, MPI_INT, id, SEND_TAG, MPI_COMM_WORLD, &request);
+				MPI_Isend(&is_under_precision, 1, MPI_INT, id, SEND_TAG, MPI_COMM_WORLD, &request);
 			}
 			MPI_Wait(&request, &status);
 		}
 
-		// Relaxation is finished for all children processes
+		// Relaxation is finished for all children processes (all within precision)
 		// Start stitching the sub arrays back into the final relaxed square array
 		for (id = 1; id < world_size; id++) {
 			// get back the start row, end row and number of elements to receive that 
@@ -267,7 +264,7 @@ int main(int argc, char *argv[]) {
 	else {
 
 		// initialise children processes variables
-		withinPrecision = 0;
+		is_under_precision = 0;
 		first_iteration = true;
 		num_sub_arr_elements = 0;
 
@@ -284,8 +281,7 @@ int main(int argc, char *argv[]) {
 		// determine the number of rows the sub array will have
 		num_sub_arr_rows = num_sub_arr_elements / dimension;
 
-		while (!withinPrecision) {
-			
+		while (!is_under_precision) {
 			// first iteration where the entire sub array is received from the root process
 			if (first_iteration) {
 				
@@ -299,7 +295,7 @@ int main(int argc, char *argv[]) {
 					}
 				}
 				first_iteration = false;
-			} 
+			}
 			
 			// future iterations do no send/receive the entire portion of tha array to relax again as it causes unnecessary communication overhead 
 			// from now on, send and receive the first and last rows of the sub array this process is working on
@@ -324,12 +320,12 @@ int main(int argc, char *argv[]) {
 
 				// receive the last row from the next child process (unless this is the last child process)
 				if (world_rank != num_children_processes) {
-					MPI_Recv(&sub_arr[(num_sub_arr_rows-1)*dimension], dimension, MPI_DOUBLE, next_child_id, SEND_TAG, MPI_COMM_WORLD, &status);
+					MPI_Recv(&sub_arr[(num_sub_arr_rows - 1) * dimension], dimension, MPI_DOUBLE, next_child_id, SEND_TAG, MPI_COMM_WORLD, &status);
 				}
 			}
 
 			// perform relaxation on assigned portion of the array
-			withinPrecision = 1;
+			is_under_precision = 1;
 			for (i = 1; i < num_sub_arr_rows - 1; i++) {
 				for (j = 1; j < dimension - 1; j++) {
 					// get 4 surrounding values needed to average
@@ -346,8 +342,8 @@ int main(int argc, char *argv[]) {
 					
 					// check if process went within the precision needed to stop relaxation
 					difference = (double)fabs(sub_arr[i * dimension + j] - new_value);
-					if (difference > precision && withinPrecision == 1) {
-						withinPrecision = 0; // need to iterate again
+					if (difference > precision && is_under_precision == 1) {
+						is_under_precision = 0; // relaxation not finished, need to iterate again
 					}
 					
 					// print current iteration data
@@ -359,10 +355,10 @@ int main(int argc, char *argv[]) {
 			}
 
 			// tell root process if this process relaxed its portion of the array within the precision
-			MPI_Send(&withinPrecision, 1, MPI_INT, root_process_id, RECV_TAG, MPI_COMM_WORLD);
+			MPI_Send(&is_under_precision, 1, MPI_INT, root_process_id, RECV_TAG, MPI_COMM_WORLD);
 
 			// wait for root process to tell this process to stop or continue relaxaing sub array
-			MPI_Recv(&withinPrecision, 1, MPI_INT, root_process_id, SEND_TAG, MPI_COMM_WORLD, &status);
+			MPI_Recv(&is_under_precision, 1, MPI_INT, root_process_id, SEND_TAG, MPI_COMM_WORLD, &status);
 
 			// update arrays for next iteration
 			temp_sub_arr = sub_arr;
