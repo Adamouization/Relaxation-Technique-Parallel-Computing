@@ -37,6 +37,6 @@
 * [X] Take user input from command line to determine parameters
 * [X] Measure time (using MPI_Wtime)
 * [X] Implement relaxation in child processes
-* [ ] Gracefully exit program (uses "exit(0)" and "mpirun -quiet" for now)
-* [ ] Gather data on Balena
-* [ ] Write report
+* [X] Gracefully exit program (uses "exit(0)" and "mpirun -quiet" for now)
+* [X] Gather data on Balena
+* [X] Write report
