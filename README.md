@@ -1,4 +1,4 @@
-# Relaxation Technique Parallelised using Pthreads and MPI
+# Relaxation Technique Parallelised in C using Pthreads and MPI
 
 ## Problem Description
 
@@ -10,13 +10,19 @@ The background is a method called relaxation technique, a solution to differenti
 
 ### Shared Memory Architecture (pthreads)
 
-* Compile using gcc: `make` or `gcc main.c array_helpers.c print_helpers.c -o shared_relaxation -pthread -Wall -Wextra -Wconversion`
+* Compile using the makefile: `make`, or `gcc main.c array_helpers.c print_helpers.c -o shared_relaxation -pthread -Wall -Wextra -Wconversion`
 * Run: `./shared_relaxation <number_of_threads>`
 
 ### Distributed Memory Architecture (MPI)
 
-* Compile using mpicc: `mpicc main.c -o distributed_relaxation -lm`
-* Run: `mpirun -np <number_of_processes> ./distributed_relaxation`
+* Compile using the makefile: `make` or: `mpicc -Wall -Wextra -Wconversion main.c -o distributed_relaxation -lm`
+* Run: `mpirun -np <num_processes> ./distributed_relaxation -d <dimension> -p <precision> -debug <debug mode>`
+
+where:
+* -np corresponds to the number of processes;
+* -d corresponds to the dimensions of the square array;
+* -p corresponds to the precision of the relaxation;
+* -debug corresponds to the debug mode (0: only essential information, 1: row allocation logs, 2: process IDs logs, 3: initial and nal arrays, 4: iteration debugging data).
 
 ### Other
 
@@ -25,9 +31,9 @@ The background is a method called relaxation technique, a solution to differenti
 * SSH into Balena: `ssh [user_name]@balena.bath.ac.uk`
 * `cd` into the project directory and submit the SLURM job script [`job.slurm`](https://github.com/Adamouization/Parallel-Computing-Relaxion-Shared-Memory/blob/master/job.slurm) to the queue: `sbatch jobscript.slurm`
 * Monitor the job in the queue: `squeue -u [user_name]`
-* View the results in the `relaxation.<job_id>.out` file using the `cat` command.
+* View the results in the `relaxation.<job_id>.out` file using the `cat *.out` command.
 
-#### Submitting multiple files using a bash script
+#### Submitting multiple files using a bash script (shared memory testing)
 
 * `./submit_multiple_batch 1`
 * `cat *.out`
@@ -39,10 +45,19 @@ The background is a method called relaxation technique, a solution to differenti
 
 * from Balena to BUCS: `cp /home/o/aj645/scratch/cw2-distributed-architecture/<file> $BUCSHOME/dos/year\ 4/Relaxation-Technique-Parallel-Computing`
 
-## Report
+## Reports
 
-You can read the final shared architecture implementation using pthreads report [here](https://github.com/Adamouization/Relaxation-Technique-Parallel-Computing/blob/master/reports/shared_architecture_report.pdf).
+* You can read the shared architecture implementation using pthreads report [here](https://github.com/Adamouization/Relaxation-Technique-Parallel-Computing/blob/master/reports/shared_architecture_report.pdf).
+* You can read the distributed architecture implementation using MPI report [here](https://github.com/Adamouization/Relaxation-Technique-Parallel-Computing/blob/master/reports/distributed_architecture_report.pdf).
 
 ## TODO
 
-See [TODO.md](https://github.com/Adamouization/Parallel-Computing-Relaxion-Shared-Memory/blob/master/TODO.md)
+See [TODO.md](https://github.com/Adamouization/Relaxation-Technique-Parallel-Computing/blob/master/TODO.md)
+
+## License 
+* see [LICENSE](https://github.com/Adamouization/Relaxation-Technique-Parallel-Computing/blob/master/LICENSE) file.
+
+## Contact
+* email: adam@jaamour.com
+* website: www.adam.jaamour.com
+* twitter: [@Adamouization](https://twitter.com/Adamouization)
